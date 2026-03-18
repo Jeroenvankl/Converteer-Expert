@@ -9,12 +9,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        dark: { 800: '#1a1a2e', 900: '#0f0f1a', 700: '#252542' },
-                        accent: { 500: '#6c63ff', 600: '#5a52d5', 400: '#8b83ff' }
+                        surface: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1' },
+                        accent: { 500: '#6366f1', 600: '#4f46e5', 400: '#818cf8', 50: '#eef2ff' },
+                        // Keep dark- aliases for backward compat in classes
+                        dark: { 800: '#ffffff', 900: '#f8fafc', 700: '#f1f5f9' }
                     }
                 }
             }
@@ -27,53 +28,54 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .drop-zone.dragover { border-color: #6c63ff; background: rgba(108,99,255,0.1); transform: scale(1.02); }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 50%, #eff6ff 100%); min-height: 100vh; }
+        .drop-zone.dragover { border-color: #6366f1; background: rgba(99,102,241,0.08); transform: scale(1.02); }
         .drop-zone { transition: all 0.3s ease; }
         .progress-bar { transition: width 0.3s ease; }
         .fade-in { animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(108,99,255,0.3); } 50% { box-shadow: 0 0 20px rgba(108,99,255,0.6); } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(99,102,241,0.2); } 50% { box-shadow: 0 0 20px rgba(99,102,241,0.35); } }
         .converting { animation: pulse-glow 2s infinite; }
         .format-chip { transition: all 0.2s ease; }
-        .format-chip:hover { transform: translateY(-2px); }
-        .format-chip.selected { background: #6c63ff; color: white; }
+        .format-chip:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(99,102,241,0.15); }
+        .format-chip.selected { background: #6366f1; color: white; }
         input[type="range"] { -webkit-appearance: none; background: transparent; }
-        input[type="range"]::-webkit-slider-track { height: 6px; border-radius: 3px; background: #252542; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #6c63ff; margin-top: -6px; cursor: pointer; }
-        .warning-box { border-left: 4px solid #f59e0b; background: rgba(245,158,11,0.1); }
+        input[type="range"]::-webkit-slider-track { height: 6px; border-radius: 3px; background: #e2e8f0; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #6366f1; margin-top: -6px; cursor: pointer; }
+        .warning-box { border-left: 4px solid #f59e0b; background: rgba(245,158,11,0.08); }
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
         #articleBody p { margin-bottom: 1rem; }
-        #articleBody h1, #articleBody h2, #articleBody h3 { font-weight: 700; margin: 1.5rem 0 0.75rem; color: #e5e7eb; }
+        #articleBody h1, #articleBody h2, #articleBody h3 { font-weight: 700; margin: 1.5rem 0 0.75rem; color: #1e293b; }
         #articleBody h1 { font-size: 1.5rem; }
         #articleBody h2 { font-size: 1.25rem; }
         #articleBody h3 { font-size: 1.1rem; }
-        #articleBody a { color: #8b83ff; text-decoration: underline; }
+        #articleBody a { color: #6366f1; text-decoration: underline; }
         #articleBody img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; }
         #articleBody svg { max-width: 2rem; max-height: 2rem; display: inline-block; vertical-align: middle; }
         #articleBody figure { margin: 1rem 0; }
-        #articleBody figcaption { font-size: 0.85rem; color: #9ca3af; margin-top: 0.5rem; }
-        #articleBody blockquote { border-left: 3px solid #6c63ff; padding-left: 1rem; color: #9ca3af; font-style: italic; margin: 1rem 0; }
+        #articleBody figcaption { font-size: 0.85rem; color: #64748b; margin-top: 0.5rem; }
+        #articleBody blockquote { border-left: 3px solid #6366f1; padding-left: 1rem; color: #64748b; font-style: italic; margin: 1rem 0; }
         #articleBody ul, #articleBody ol { padding-left: 1.5rem; margin-bottom: 1rem; }
         #articleBody li { margin-bottom: 0.25rem; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1a1a2e; }
-        ::-webkit-scrollbar-thumb { background: #252542; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6c63ff; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
     </style>
 </head>
-<body class="bg-dark-900 text-gray-100 min-h-screen">
+<body class="text-slate-800 min-h-screen">
 
     <!-- Header -->
-    <header class="bg-dark-800 border-b border-dark-700 sticky top-0 z-50">
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-accent-500 rounded-xl flex items-center justify-center text-xl">🔄</div>
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-xl shadow-md">🔄</div>
                 <div>
-                    <h1 class="text-lg font-bold">Jouw Converteer Expert</h1>
-                    <p class="text-xs text-gray-400">Gratis bestandsconverter — alles blijft in je browser</p>
+                    <h1 class="text-lg font-bold text-slate-900">Jouw Converteer Expert</h1>
+                    <p class="text-xs text-slate-500">Gratis bestandsconverter — alles blijft in je browser</p>
                 </div>
             </div>
-            <button onclick="toggleInfo()" class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-dark-700 transition">
+            <button onclick="toggleInfo()" class="text-slate-400 hover:text-indigo-600 p-2 rounded-lg hover:bg-indigo-50 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </button>
         </div>
@@ -81,18 +83,18 @@
 
     <!-- Info Panel (hidden by default) -->
     <div id="infoPanel" class="hidden max-w-3xl mx-auto px-4 mt-4">
-        <div class="bg-dark-800 rounded-xl p-4 border border-dark-700 fade-in">
-            <h3 class="font-semibold mb-2">Hoe werkt het?</h3>
-            <ul class="text-sm text-gray-400 space-y-1">
-                <li>📁 Je bestanden worden <strong class="text-gray-200">nooit geüpload</strong> — alles wordt lokaal in je browser verwerkt</li>
-                <li>🖼️ <strong class="text-gray-200">Afbeeldingen</strong>: JPEG, PNG, WebP, BMP, GIF, HEIC, SVG, TIFF → alle richtingen</li>
-                <li>🎬 <strong class="text-gray-200">Video</strong>: MP4, AVI, WebM, MOV, MKV → inclusief audio-extractie en GIF</li>
-                <li>🎵 <strong class="text-gray-200">Audio</strong>: MP3, WAV, OGG, FLAC, AAC, M4A → alle richtingen</li>
-                <li>📄 <strong class="text-gray-200">Documenten</strong>: PDF, DOCX, Markdown, CSV, JSON → diverse formaten</li>
+        <div class="card p-4 fade-in">
+            <h3 class="font-semibold mb-2 text-slate-900">Hoe werkt het?</h3>
+            <ul class="text-sm text-slate-600 space-y-1">
+                <li>📁 Je bestanden worden <strong class="text-slate-800">nooit geüpload</strong> — alles wordt lokaal in je browser verwerkt</li>
+                <li>🖼️ <strong class="text-slate-800">Afbeeldingen</strong>: JPEG, PNG, WebP, BMP, GIF, HEIC, SVG, TIFF → alle richtingen</li>
+                <li>🎬 <strong class="text-slate-800">Video</strong>: MP4, AVI, WebM, MOV, MKV → inclusief audio-extractie en GIF</li>
+                <li>🎵 <strong class="text-slate-800">Audio</strong>: MP3, WAV, OGG, FLAC, AAC, M4A → alle richtingen</li>
+                <li>📄 <strong class="text-slate-800">Documenten</strong>: PDF, DOCX, Markdown, CSV, JSON → diverse formaten</li>
                 <li>⚠️ Video/audio-conversies laden eenmalig FFmpeg (~30 MB)</li>
-                <li>🎬 <strong class="text-gray-200">YouTube</strong>: Plak een link → download als MP3 of MP4 (vereist lokale server + yt-dlp)</li>
+                <li>🎬 <strong class="text-slate-800">YouTube</strong>: Plak een link → download als MP3 of MP4 (vereist lokale server + yt-dlp)</li>
             </ul>
-            <button onclick="toggleInfo()" class="mt-3 text-xs text-accent-400 hover:underline">Sluiten</button>
+            <button onclick="toggleInfo()" class="mt-3 text-xs text-indigo-500 hover:underline">Sluiten</button>
         </div>
     </div>
 
@@ -100,14 +102,14 @@
     <main class="max-w-3xl mx-auto px-4 py-6 space-y-6">
 
         <!-- Mode Tabs -->
-        <div class="flex bg-dark-800 rounded-xl p-1 border border-dark-700">
-            <button id="tabFiles" onclick="switchTab('files')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 bg-accent-500 text-white">
+        <div class="flex bg-white rounded-xl p-1 border border-slate-200 shadow-sm">
+            <button id="tabFiles" onclick="switchTab('files')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 bg-indigo-500 text-white shadow-sm">
                 📁 Bestanden
             </button>
-            <button id="tabYoutube" onclick="switchTab('youtube')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+            <button id="tabYoutube" onclick="switchTab('youtube')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50">
                 🎬 YouTube
             </button>
-            <button id="tabArticle" onclick="switchTab('article')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+            <button id="tabArticle" onclick="switchTab('article')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50">
                 📰 Artikelen
             </button>
         </div>
@@ -116,28 +118,28 @@
         <div id="filesTab">
 
         <!-- Drop Zone -->
-        <div id="dropZone" class="drop-zone border-2 border-dashed border-dark-700 rounded-2xl p-8 text-center cursor-pointer hover:border-accent-500/50"
+        <div id="dropZone" class="drop-zone card border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center cursor-pointer hover:border-indigo-400 hover:shadow-md"
              onclick="document.getElementById('fileInput').click()">
             <input type="file" id="fileInput" class="hidden" onchange="handleFileSelect(event)">
             <div id="dropContent">
                 <div class="text-5xl mb-4">📁</div>
-                <p class="text-lg font-medium">Sleep je bestand hierin</p>
-                <p class="text-sm text-gray-400 mt-1">of klik om een bestand te kiezen</p>
-                <p class="text-xs text-gray-500 mt-3">Ondersteunt: afbeeldingen, video, audio en documenten</p>
+                <p class="text-lg font-medium text-slate-700">Sleep je bestand hierin</p>
+                <p class="text-sm text-slate-500 mt-1">of klik om een bestand te kiezen</p>
+                <p class="text-xs text-slate-400 mt-3">Ondersteunt: afbeeldingen, video, audio en documenten</p>
             </div>
         </div>
 
         <!-- File Info (hidden until file selected) -->
-        <div id="fileInfo" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+        <div id="fileInfo" class="hidden fade-in card p-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3 min-w-0">
-                    <div id="fileIcon" class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 bg-dark-700">📄</div>
+                    <div id="fileIcon" class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 bg-indigo-50">📄</div>
                     <div class="min-w-0">
-                        <p id="fileName" class="font-medium truncate"></p>
-                        <p id="fileMeta" class="text-sm text-gray-400"></p>
+                        <p id="fileName" class="font-medium truncate text-slate-800"></p>
+                        <p id="fileMeta" class="text-sm text-slate-500"></p>
                     </div>
                 </div>
-                <button onclick="resetApp()" class="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-dark-700 transition flex-shrink-0" title="Verwijder bestand">
+                <button onclick="resetApp()" class="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition flex-shrink-0" title="Verwijder bestand">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -147,47 +149,47 @@
         <div id="warnings" class="hidden"></div>
 
         <!-- Output Format Selection (hidden until file selected) -->
-        <div id="formatSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
-            <label class="block text-sm font-medium text-gray-300 mb-3">Converteer naar:</label>
+        <div id="formatSection" class="hidden fade-in card p-4">
+            <label class="block text-sm font-medium text-slate-700 mb-3">Converteer naar:</label>
             <div id="formatChips" class="flex flex-wrap gap-2"></div>
         </div>
 
         <!-- Settings Panel (dynamic based on conversion type) -->
-        <div id="settingsSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+        <div id="settingsSection" class="hidden fade-in card p-4">
             <div class="flex items-center gap-2 mb-3 cursor-pointer" onclick="toggleSettings()">
-                <svg class="w-4 h-4 text-gray-400 transition" id="settingsChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                <span class="text-sm font-medium text-gray-300">Instellingen</span>
+                <svg class="w-4 h-4 text-slate-500 transition" id="settingsChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <span class="text-sm font-medium text-slate-700">Instellingen</span>
             </div>
             <div id="settingsContent" class="space-y-4"></div>
         </div>
 
         <!-- Convert Button -->
         <div id="convertSection" class="hidden fade-in">
-            <button id="convertBtn" onclick="startConversion()" class="w-full bg-accent-500 hover:bg-accent-600 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2 text-lg">
+            <button id="convertBtn" onclick="startConversion()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-lg">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 Converteer
             </button>
         </div>
 
         <!-- Progress Bar (hidden until converting) -->
-        <div id="progressSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+        <div id="progressSection" class="hidden fade-in card p-4">
             <div class="flex items-center justify-between mb-2">
-                <span id="progressLabel" class="text-sm text-gray-300">Bezig met converteren...</span>
-                <span id="progressPercent" class="text-sm font-mono text-accent-400">0%</span>
+                <span id="progressLabel" class="text-sm text-slate-600">Bezig met converteren...</span>
+                <span id="progressPercent" class="text-sm font-mono text-indigo-600">0%</span>
             </div>
-            <div class="w-full bg-dark-700 rounded-full h-2.5">
-                <div id="progressBar" class="progress-bar bg-accent-500 h-2.5 rounded-full" style="width: 0%"></div>
+            <div class="w-full bg-slate-200 rounded-full h-2.5">
+                <div id="progressBar" class="progress-bar bg-indigo-500 h-2.5 rounded-full" style="width: 0%"></div>
             </div>
-            <p id="progressDetail" class="text-xs text-gray-500 mt-2"></p>
+            <p id="progressDetail" class="text-xs text-slate-400 mt-2"></p>
         </div>
 
         <!-- Result (hidden until done) -->
-        <div id="resultSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-accent-500/30">
+        <div id="resultSection" class="hidden fade-in card p-4 border-green-200 bg-green-50/50">
             <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center text-xl">✅</div>
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-xl">✅</div>
                 <div>
-                    <p class="font-medium">Conversie geslaagd!</p>
-                    <p id="resultMeta" class="text-sm text-gray-400"></p>
+                    <p class="font-medium text-green-800">Conversie geslaagd!</p>
+                    <p id="resultMeta" class="text-sm text-green-600"></p>
                 </div>
             </div>
             <button id="downloadBtn" onclick="downloadResult()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
@@ -199,8 +201,8 @@
         <!-- Conversion History -->
         <div id="historySection" class="hidden">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-medium text-gray-400">Recente conversies</h3>
-                <button onclick="clearHistory()" class="text-xs text-gray-500 hover:text-red-400 transition">Wissen</button>
+                <h3 class="text-sm font-medium text-slate-500">Recente conversies</h3>
+                <button onclick="clearHistory()" class="text-xs text-slate-400 hover:text-red-500 transition">Wissen</button>
             </div>
             <div id="historyList" class="space-y-2"></div>
         </div>
@@ -211,42 +213,45 @@
         <div id="youtubeTab" class="hidden space-y-6">
 
             <!-- YouTube URL Input -->
-            <div class="bg-dark-800 rounded-2xl p-6 border border-dark-700">
+            <div class="card rounded-2xl p-6">
                 <div class="text-center mb-4">
                     <div class="text-5xl mb-3">🎬</div>
-                    <p class="text-lg font-medium">YouTube naar MP3 / MP4</p>
-                    <p class="text-sm text-gray-400 mt-1">Plak een YouTube-link en download als audio of video</p>
+                    <p class="text-lg font-medium text-slate-800">YouTube naar MP3 / MP4</p>
+                    <p class="text-sm text-slate-500 mt-1">Plak een YouTube-link en download als audio of video</p>
                 </div>
                 <div class="relative">
                     <input type="text" id="ytUrl" placeholder="https://www.youtube.com/watch?v=..."
-                           class="w-full bg-dark-700 border border-dark-700 focus:border-accent-500 rounded-xl px-4 py-3 text-sm text-gray-200 outline-none transition"
+                           class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition"
                            onkeydown="if(event.key==='Enter') fetchYoutubeInfo()">
-                    <button onclick="fetchYoutubeInfo()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-500 hover:bg-accent-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
+                    <button onclick="fetchYoutubeInfo()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-sm">
                         Zoek
                     </button>
                 </div>
             </div>
 
             <!-- YouTube Video Info (hidden until URL entered) -->
-            <div id="ytInfo" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+            <div id="ytInfo" class="hidden fade-in card p-4">
                 <div class="flex gap-4">
-                    <img id="ytThumb" src="" alt="" class="w-32 h-20 object-cover rounded-lg bg-dark-700 flex-shrink-0">
+                    <img id="ytThumb" src="" alt="" class="w-32 h-20 object-cover rounded-lg bg-slate-100 flex-shrink-0">
                     <div class="min-w-0">
-                        <p id="ytTitle" class="font-medium truncate"></p>
-                        <p id="ytMeta" class="text-sm text-gray-400 mt-1"></p>
+                        <p id="ytTitle" class="font-medium text-slate-800 truncate"></p>
+                        <p id="ytMeta" class="text-sm text-slate-500 mt-1"></p>
                     </div>
                 </div>
             </div>
 
+            <!-- YouTube Stream Note (shown when streams are unavailable online) -->
+            <div id="ytStreamNote" class="hidden fade-in warning-box rounded-lg p-4 text-sm text-amber-800"></div>
+
             <!-- YouTube Format Selection -->
-            <div id="ytFormatSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
-                <label class="block text-sm font-medium text-gray-300 mb-3">Download als:</label>
+            <div id="ytFormatSection" class="hidden fade-in card p-4">
+                <label class="block text-sm font-medium text-slate-700 mb-3">Download als:</label>
                 <div class="flex gap-3">
-                    <button onclick="selectYtFormat('mp3')" id="ytFmtMp3" class="format-chip flex-1 py-3 rounded-xl border border-dark-700 bg-dark-700 hover:border-accent-500 text-sm font-medium flex items-center justify-center gap-2">
-                        🎵 MP3 <span class="text-gray-500 text-xs">(audio)</span>
+                    <button onclick="selectYtFormat('mp3')" id="ytFmtMp3" class="format-chip flex-1 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-indigo-400 text-sm font-medium flex items-center justify-center gap-2 text-slate-700">
+                        🎵 MP3 <span class="text-slate-400 text-xs">(audio)</span>
                     </button>
-                    <button onclick="selectYtFormat('mp4')" id="ytFmtMp4" class="format-chip flex-1 py-3 rounded-xl border border-dark-700 bg-dark-700 hover:border-accent-500 text-sm font-medium flex items-center justify-center gap-2">
-                        🎬 MP4 <span class="text-gray-500 text-xs">(video)</span>
+                    <button onclick="selectYtFormat('mp4')" id="ytFmtMp4" class="format-chip flex-1 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-indigo-400 text-sm font-medium flex items-center justify-center gap-2 text-slate-700">
+                        🎬 MP4 <span class="text-slate-400 text-xs">(video)</span>
                     </button>
                 </div>
             </div>
@@ -260,24 +265,24 @@
             </div>
 
             <!-- YouTube Progress -->
-            <div id="ytProgress" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+            <div id="ytProgress" class="hidden fade-in card p-4">
                 <div class="flex items-center justify-between mb-2">
-                    <span id="ytProgressLabel" class="text-sm text-gray-300">Bezig met downloaden...</span>
-                    <span id="ytProgressPercent" class="text-sm font-mono text-red-400">0%</span>
+                    <span id="ytProgressLabel" class="text-sm text-slate-600">Bezig met downloaden...</span>
+                    <span id="ytProgressPercent" class="text-sm font-mono text-red-600">0%</span>
                 </div>
-                <div class="w-full bg-dark-700 rounded-full h-2.5">
+                <div class="w-full bg-slate-200 rounded-full h-2.5">
                     <div id="ytProgressBar" class="progress-bar bg-red-500 h-2.5 rounded-full" style="width: 0%"></div>
                 </div>
-                <p id="ytProgressDetail" class="text-xs text-gray-500 mt-2"></p>
+                <p id="ytProgressDetail" class="text-xs text-slate-400 mt-2"></p>
             </div>
 
             <!-- YouTube Result -->
-            <div id="ytResult" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-green-500/30">
+            <div id="ytResult" class="hidden fade-in card p-4 border-green-200 bg-green-50/50">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center text-xl">✅</div>
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-xl">✅</div>
                     <div>
-                        <p class="font-medium">Download klaar!</p>
-                        <p id="ytResultMeta" class="text-sm text-gray-400"></p>
+                        <p class="font-medium text-green-800">Download klaar!</p>
+                        <p id="ytResultMeta" class="text-sm text-green-600"></p>
                     </div>
                 </div>
                 <button id="ytResultBtn" onclick="downloadYoutubeFile()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
@@ -287,13 +292,13 @@
             </div>
 
             <!-- Worker URL Config (shown only on GitHub Pages / non-localhost) -->
-            <div id="workerConfig" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
-                <label class="block text-sm font-medium text-gray-300 mb-2">☁️ Cloudflare Worker URL</label>
-                <p class="text-xs text-gray-500 mb-3">Voer je Worker URL in voor YouTube en Artikelen online. Zie README voor setup.</p>
+            <div id="workerConfig" class="hidden fade-in card p-4">
+                <label class="block text-sm font-medium text-slate-700 mb-2">☁️ Cloudflare Worker URL</label>
+                <p class="text-xs text-slate-500 mb-3">Voer je Worker URL in voor YouTube en Artikelen online. Zie README voor setup.</p>
                 <div class="flex gap-2">
                     <input type="text" id="workerUrlInput" placeholder="https://jouw-worker.workers.dev"
-                           class="flex-1 bg-dark-700 border border-dark-700 focus:border-accent-500 rounded-lg px-3 py-2 text-sm text-gray-200 outline-none transition">
-                    <button onclick="saveWorkerUrl()" class="bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                           class="flex-1 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-lg px-3 py-2 text-sm text-slate-800 outline-none transition">
+                    <button onclick="saveWorkerUrl()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
                         Opslaan
                     </button>
                 </div>
@@ -302,8 +307,8 @@
 
             <!-- Server Status Warning -->
             <div id="ytServerWarning" class="warning-box rounded-lg p-3">
-                <p class="text-sm text-yellow-200/80">⚠️ YouTube-downloads vereisen de lokale server of een Cloudflare Worker.</p>
-                <code class="block mt-2 text-xs text-accent-400 bg-dark-900 rounded p-2">pip install yt-dlp && python3 server.py</code>
+                <p class="text-sm text-amber-800">⚠️ YouTube-downloads vereisen de lokale server of een Cloudflare Worker.</p>
+                <code class="block mt-2 text-xs text-indigo-600 bg-indigo-50 rounded p-2">pip install yt-dlp && python3 server.py</code>
             </div>
 
         </div><!-- end youtubeTab -->
@@ -312,17 +317,17 @@
         <div id="articleTab" class="hidden space-y-6">
 
             <!-- Article URL Input -->
-            <div class="bg-dark-800 rounded-2xl p-6 border border-dark-700">
+            <div class="card rounded-2xl p-6">
                 <div class="text-center mb-4">
                     <div class="text-5xl mb-3">📰</div>
-                    <p class="text-lg font-medium">Artikel Lezer</p>
-                    <p class="text-sm text-gray-400 mt-1">Plak een link naar een artikel en lees het zonder afleiding</p>
+                    <p class="text-lg font-medium text-slate-800">Artikel Lezer</p>
+                    <p class="text-sm text-slate-500 mt-1">Plak een link naar een artikel en lees het zonder afleiding</p>
                 </div>
                 <div class="relative">
                     <input type="text" id="articleUrl" placeholder="https://nos.nl/artikel/..."
-                           class="w-full bg-dark-700 border border-dark-700 focus:border-green-500 rounded-xl px-4 py-3 text-sm text-gray-200 outline-none transition"
+                           class="w-full bg-slate-50 border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-100 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition"
                            onkeydown="if(event.key==='Enter') fetchArticle()">
-                    <button onclick="fetchArticle()" id="articleFetchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
+                    <button onclick="fetchArticle()" id="articleFetchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-sm">
                         Lees
                     </button>
                 </div>
@@ -331,36 +336,36 @@
             <!-- Article Loading -->
             <div id="articleLoading" class="hidden fade-in text-center py-8">
                 <svg class="w-8 h-8 animate-spin mx-auto text-green-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                <p class="text-sm text-gray-400 mt-3">Artikel ophalen...</p>
+                <p class="text-sm text-slate-500 mt-3">Artikel ophalen...</p>
             </div>
 
             <!-- Article Content -->
             <div id="articleContent" class="hidden fade-in">
-                <div class="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
+                <div class="card rounded-xl overflow-hidden">
                     <!-- Article Header -->
-                    <div class="p-6 border-b border-dark-700">
-                        <h2 id="articleTitle" class="text-xl font-bold leading-tight"></h2>
+                    <div class="p-6 border-b border-slate-200">
+                        <h2 id="articleTitle" class="text-xl font-bold leading-tight text-slate-900"></h2>
                         <div class="flex items-center gap-3 mt-3">
-                            <a id="articleSource" href="#" target="_blank" class="text-xs text-accent-400 hover:underline truncate"></a>
-                            <button onclick="copyArticle()" class="text-xs text-gray-500 hover:text-white transition flex items-center gap-1 flex-shrink-0">
+                            <a id="articleSource" href="#" target="_blank" class="text-xs text-indigo-500 hover:underline truncate"></a>
+                            <button onclick="copyArticle()" class="text-xs text-slate-400 hover:text-slate-700 transition flex items-center gap-1 flex-shrink-0">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
                                 Kopieer tekst
                             </button>
                         </div>
                     </div>
                     <!-- Article Body -->
-                    <div id="articleBody" class="p-6 prose prose-invert max-w-none leading-relaxed text-gray-300" style="font-size:1.05rem;line-height:1.8"></div>
+                    <div id="articleBody" class="p-6 prose max-w-none leading-relaxed text-slate-700" style="font-size:1.05rem;line-height:1.8"></div>
                 </div>
             </div>
 
             <!-- Article Error -->
             <div id="articleError" class="hidden fade-in warning-box rounded-lg p-4">
-                <p class="text-sm text-yellow-200/80" id="articleErrorMsg"></p>
+                <p class="text-sm text-amber-800" id="articleErrorMsg"></p>
             </div>
 
             <!-- Article Info -->
-            <div class="bg-dark-800/50 rounded-lg p-3 border border-dark-700/50">
-                <p class="text-xs text-gray-500">Werkt als browser Reader Mode: haalt de HTML op en extraheert de artikeltekst. Bij zachte paywalls (content in HTML, verborgen door JavaScript) wordt de tekst zichtbaar. Bij harde paywalls (content niet in HTML) werkt dit niet.</p>
+            <div class="bg-white/60 rounded-lg p-3 border border-slate-200">
+                <p class="text-xs text-slate-400">Werkt als browser Reader Mode: haalt de HTML op en extraheert de artikeltekst. Bij zachte paywalls (content in HTML, verborgen door JavaScript) wordt de tekst zichtbaar. Bij harde paywalls (content niet in HTML) werkt dit niet.</p>
             </div>
 
         </div><!-- end articleTab -->
@@ -368,7 +373,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="text-center text-xs text-gray-600 py-6">
+    <footer class="text-center text-xs text-slate-400 py-6">
         Jouw Converteer Expert — Bestanden verlaten nooit je browser
     </footer>
 
@@ -538,7 +543,7 @@
 
         if (warnings.length > 0) {
             warningsEl.innerHTML = warnings.map(w =>
-                `<div class="warning-box rounded-lg p-3 mb-2 fade-in"><p class="text-sm text-yellow-200/80">⚠️ ${w}</p></div>`
+                `<div class="warning-box rounded-lg p-3 mb-2 fade-in"><p class="text-sm text-amber-800">⚠️ ${w}</p></div>`
             ).join('');
             warningsEl.classList.remove('hidden');
         } else {
@@ -552,14 +557,14 @@
         container.innerHTML = '';
 
         if (outputs.length === 0) {
-            container.innerHTML = '<p class="text-sm text-gray-500">Geen conversies beschikbaar voor dit formaat.</p>';
+            container.innerHTML = '<p class="text-sm text-slate-400">Geen conversies beschikbaar voor dit formaat.</p>';
             return;
         }
 
         outputs.forEach(fmt => {
             const info = FORMAT_INFO[fmt];
             const chip = document.createElement('button');
-            chip.className = 'format-chip px-4 py-2 rounded-lg border border-dark-700 bg-dark-700 hover:border-accent-500 text-sm font-medium flex items-center gap-2';
+            chip.className = 'format-chip px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 hover:border-indigo-400 text-sm font-medium flex items-center gap-2 text-slate-700';
             chip.innerHTML = `${info.icon} ${info.label}`;
             chip.onclick = () => selectOutputFormat(fmt);
             container.appendChild(chip);
@@ -570,15 +575,15 @@
         state.outputFormat = format;
         // Update chip styles
         document.querySelectorAll('.format-chip').forEach(chip => {
-            chip.classList.remove('selected', 'border-accent-500');
-            chip.classList.add('border-dark-700');
+            chip.classList.remove('selected', 'border-indigo-400');
+            chip.classList.add('border-slate-200');
         });
         const chips = document.querySelectorAll('.format-chip');
         const outputs = CONVERSIONS[state.inputFormat] || [];
         const idx = outputs.indexOf(format);
         if (idx >= 0 && chips[idx]) {
-            chips[idx].classList.add('selected', 'border-accent-500');
-            chips[idx].classList.remove('border-dark-700');
+            chips[idx].classList.add('selected', 'border-indigo-400');
+            chips[idx].classList.remove('border-slate-200');
         }
         // Show settings and convert button
         showSettings(state.inputFormat, format);
@@ -597,11 +602,11 @@
         if (['jpeg', 'jpg'].includes(outputFormat)) {
             html += `
                 <div>
-                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
-                        <span>JPEG Kwaliteit</span><span id="qualityValue" class="font-mono text-accent-400">85%</span>
+                    <label class="flex items-center justify-between text-sm text-slate-600 mb-1">
+                        <span>JPEG Kwaliteit</span><span id="qualityValue" class="font-mono text-indigo-600">85%</span>
                     </label>
                     <input type="range" id="jpegQuality" min="1" max="100" value="85" class="w-full" oninput="document.getElementById('qualityValue').textContent=this.value+'%'">
-                    <p class="text-xs text-gray-500 mt-1">Lager = kleiner bestand, minder kwaliteit</p>
+                    <p class="text-xs text-slate-400 mt-1">Lager = kleiner bestand, minder kwaliteit</p>
                 </div>`;
         }
 
@@ -609,8 +614,8 @@
         if (outputFormat === 'webp') {
             html += `
                 <div>
-                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
-                        <span>WebP Kwaliteit</span><span id="webpQualityValue" class="font-mono text-accent-400">85%</span>
+                    <label class="flex items-center justify-between text-sm text-slate-600 mb-1">
+                        <span>WebP Kwaliteit</span><span id="webpQualityValue" class="font-mono text-indigo-600">85%</span>
                     </label>
                     <input type="range" id="webpQuality" min="1" max="100" value="85" class="w-full" oninput="document.getElementById('webpQualityValue').textContent=this.value+'%'">
                 </div>`;
@@ -620,8 +625,8 @@
         if (['mp3', 'ogg', 'aac'].includes(outputFormat) || (inputCat === 'video' && ['mp3', 'wav'].includes(outputFormat))) {
             html += `
                 <div>
-                    <label class="text-sm text-gray-300 mb-1 block">Audio Bitrate</label>
-                    <select id="audioBitrate" class="w-full bg-dark-700 border border-dark-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                    <label class="text-sm text-slate-600 mb-1 block">Audio Bitrate</label>
+                    <select id="audioBitrate" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700">
                         <option value="128">128 kbps (standaard)</option>
                         <option value="192">192 kbps (goed)</option>
                         <option value="256">256 kbps (hoog)</option>
@@ -634,20 +639,20 @@
         if (inputCat === 'video' && outputFormat === 'gif') {
             html += `
                 <div>
-                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
-                        <span>Framerate (fps)</span><span id="fpsValue" class="font-mono text-accent-400">10</span>
+                    <label class="flex items-center justify-between text-sm text-slate-600 mb-1">
+                        <span>Framerate (fps)</span><span id="fpsValue" class="font-mono text-indigo-600">10</span>
                     </label>
                     <input type="range" id="gifFps" min="5" max="30" value="10" class="w-full" oninput="document.getElementById('fpsValue').textContent=this.value">
                 </div>
                 <div>
-                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
-                        <span>Max breedte (px)</span><span id="gifWidthValue" class="font-mono text-accent-400">480</span>
+                    <label class="flex items-center justify-between text-sm text-slate-600 mb-1">
+                        <span>Max breedte (px)</span><span id="gifWidthValue" class="font-mono text-indigo-600">480</span>
                     </label>
                     <input type="range" id="gifWidth" min="160" max="1280" value="480" step="80" class="w-full" oninput="document.getElementById('gifWidthValue').textContent=this.value">
                 </div>
                 <div>
-                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
-                        <span>Max duur (sec)</span><span id="gifDurationValue" class="font-mono text-accent-400">10</span>
+                    <label class="flex items-center justify-between text-sm text-slate-600 mb-1">
+                        <span>Max duur (sec)</span><span id="gifDurationValue" class="font-mono text-indigo-600">10</span>
                     </label>
                     <input type="range" id="gifDuration" min="1" max="30" value="10" class="w-full" oninput="document.getElementById('gifDurationValue').textContent=this.value">
                 </div>`;
@@ -657,8 +662,8 @@
         if (inputCat === 'video' && ['mp4', 'webm', 'avi', 'mov'].includes(outputFormat)) {
             html += `
                 <div>
-                    <label class="text-sm text-gray-300 mb-1 block">Video Kwaliteit</label>
-                    <select id="videoQuality" class="w-full bg-dark-700 border border-dark-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                    <label class="text-sm text-slate-600 mb-1 block">Video Kwaliteit</label>
+                    <select id="videoQuality" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700">
                         <option value="high">Hoog (groot bestand)</option>
                         <option value="medium" selected>Normaal (aanbevolen)</option>
                         <option value="low">Laag (klein bestand)</option>
@@ -670,8 +675,8 @@
         if (inputFormat === 'pdf' && outputFormat === 'png') {
             html += `
                 <div>
-                    <label class="text-sm text-gray-300 mb-1 block">Pagina's (leeg = alle pagina's als ZIP)</label>
-                    <input type="text" id="pdfPages" placeholder="bijv. 1-5 of 1,3,5" class="w-full bg-dark-700 border border-dark-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                    <label class="text-sm text-slate-600 mb-1 block">Pagina's (leeg = alle pagina's als ZIP)</label>
+                    <input type="text" id="pdfPages" placeholder="bijv. 1-5 of 1,3,5" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700">
                 </div>`;
         }
 
@@ -817,7 +822,7 @@
         } catch (error) {
             console.error('Conversion error:', error?.message || error?.name || JSON.stringify(error));
             setProgress(0, 'Conversie mislukt', error?.message || error?.name || 'Er is een onbekende fout opgetreden.');
-            document.getElementById('progressBar').classList.remove('bg-accent-500');
+            document.getElementById('progressBar').classList.remove('bg-indigo-500');
             document.getElementById('progressBar').classList.add('bg-red-500');
         } finally {
             state.converting = false;
@@ -825,7 +830,7 @@
             btn.classList.remove('converting');
             btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Converteer';
             document.getElementById('progressBar').classList.remove('bg-red-500');
-            document.getElementById('progressBar').classList.add('bg-accent-500');
+            document.getElementById('progressBar').classList.add('bg-indigo-500');
         }
     }
 
@@ -1657,12 +1662,12 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
         }
         section.classList.remove('hidden');
         list.innerHTML = state.history.map(h => `
-            <div class="bg-dark-800 rounded-lg p-3 border border-dark-700 flex items-center justify-between text-sm">
+            <div class="card rounded-lg p-3 flex items-center justify-between text-sm">
                 <div class="min-w-0">
-                    <span class="text-gray-300 truncate block">${h.inputName} → ${h.outputName}</span>
-                    <span class="text-xs text-gray-500">${h.inputSize} → ${h.outputSize}</span>
+                    <span class="text-slate-700 truncate block">${h.inputName} → ${h.outputName}</span>
+                    <span class="text-xs text-slate-400">${h.inputSize} → ${h.outputSize}</span>
                 </div>
-                <span class="text-xs text-gray-500 flex-shrink-0 ml-3">${h.time}</span>
+                <span class="text-xs text-slate-400 flex-shrink-0 ml-3">${h.time}</span>
             </div>
         `).join('');
     }
@@ -1697,9 +1702,9 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
     function switchTab(tab) {
         const tabs = { files: 'filesTab', youtube: 'youtubeTab', article: 'articleTab' };
         const btns = { files: 'tabFiles', youtube: 'tabYoutube', article: 'tabArticle' };
-        const colors = { files: 'bg-accent-500', youtube: 'bg-red-600', article: 'bg-green-600' };
-        const inactive = 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-gray-400 hover:text-white';
-        const active = 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-white';
+        const colors = { files: 'bg-indigo-500', youtube: 'bg-red-500', article: 'bg-green-600' };
+        const inactive = 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50';
+        const active = 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-white shadow-sm';
 
         for (const [key, id] of Object.entries(tabs)) {
             document.getElementById(id).classList.toggle('hidden', key !== tab);
@@ -1726,7 +1731,7 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
             workerUrl = url.replace(/\/$/, '');
             localStorage.setItem('workerUrl', workerUrl);
             document.getElementById('workerConfigStatus').textContent = '✅ Opgeslagen!';
-            document.getElementById('workerConfigStatus').className = 'text-xs text-green-400 mt-1';
+            document.getElementById('workerConfigStatus').className = 'text-xs text-green-600 mt-1';
             setTimeout(() => {
                 document.getElementById('workerConfigStatus').textContent = '';
                 checkYoutubeServer();
@@ -1814,7 +1819,7 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
         document.getElementById('ytProgress').classList.add('hidden');
         document.getElementById('ytResult').classList.add('hidden');
 
-        const searchBtn = document.querySelector('#youtubeTab .bg-accent-500');
+        const searchBtn = document.querySelector('#youtubeTab .bg-indigo-500');
         const origText = searchBtn.textContent;
         searchBtn.textContent = '...';
         searchBtn.disabled = true;
@@ -1835,12 +1840,14 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
 
             ytState.title = data.title;
 
-            // If online mode (Worker/Piped), store stream URLs
-            if (!isLocalServer && data.audioStream) {
+            // If online mode (Worker), store stream URLs if available
+            if (!isLocalServer && data.streamsAvailable && data.audioStream) {
                 ytState.onlineStreams = {
                     audio: data.audioStream,
                     video: data.videoStream
                 };
+            } else if (!isLocalServer) {
+                ytState.onlineStreams = null;
             }
 
             document.getElementById('ytThumb').src = data.thumbnail || '';
@@ -1852,13 +1859,29 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
             // Update format labels for online mode (audio = M4A, not MP3)
             if (ytState.onlineStreams) {
                 const audioLabel = ytState.onlineStreams.audio?.format || 'Audio';
-                document.getElementById('ytFmtMp3').innerHTML = `🎵 ${audioLabel} <span class="text-gray-500 text-xs">(audio)</span>`;
+                document.getElementById('ytFmtMp3').innerHTML = `🎵 ${audioLabel} <span class="text-slate-400 text-xs">(audio)</span>`;
             } else {
-                document.getElementById('ytFmtMp3').innerHTML = '🎵 MP3 <span class="text-gray-500 text-xs">(audio)</span>';
+                document.getElementById('ytFmtMp3').innerHTML = '🎵 MP3 <span class="text-slate-400 text-xs">(audio)</span>';
             }
 
             document.getElementById('ytInfo').classList.remove('hidden');
-            document.getElementById('ytFormatSection').classList.remove('hidden');
+
+            // Show download note if streams unavailable (online mode)
+            if (!isLocalServer && !data.streamsAvailable && data.downloadNote) {
+                document.getElementById('ytFormatSection').classList.add('hidden');
+                document.getElementById('ytDownloadSection').classList.add('hidden');
+                // Show a warning with the note
+                const noteEl = document.getElementById('ytStreamNote');
+                if (noteEl) {
+                    noteEl.textContent = '⚠️ ' + data.downloadNote;
+                    noteEl.classList.remove('hidden');
+                }
+            } else {
+                const noteEl = document.getElementById('ytStreamNote');
+                if (noteEl) noteEl.classList.add('hidden');
+                document.getElementById('ytFormatSection').classList.remove('hidden');
+            }
+
             document.getElementById('ytServerWarning').classList.add('hidden');
 
         } catch (e) {
@@ -1878,17 +1901,17 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
         const mp3Btn = document.getElementById('ytFmtMp3');
         const mp4Btn = document.getElementById('ytFmtMp4');
 
-        mp3Btn.classList.remove('selected', 'border-accent-500');
-        mp4Btn.classList.remove('selected', 'border-accent-500');
-        mp3Btn.classList.add('border-dark-700');
-        mp4Btn.classList.add('border-dark-700');
+        mp3Btn.classList.remove('selected', 'border-indigo-400');
+        mp4Btn.classList.remove('selected', 'border-indigo-400');
+        mp3Btn.classList.add('border-slate-200');
+        mp4Btn.classList.add('border-slate-200');
 
         if (format === 'mp3') {
-            mp3Btn.classList.add('selected', 'border-accent-500');
-            mp3Btn.classList.remove('border-dark-700');
+            mp3Btn.classList.add('selected', 'border-indigo-400');
+            mp3Btn.classList.remove('border-slate-200');
         } else {
-            mp4Btn.classList.add('selected', 'border-accent-500');
-            mp4Btn.classList.remove('border-dark-700');
+            mp4Btn.classList.add('selected', 'border-indigo-400');
+            mp4Btn.classList.remove('border-slate-200');
         }
 
         document.getElementById('ytDownloadSection').classList.remove('hidden');
@@ -2155,3 +2178,4 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
     </script>
 </body>
 </html>
+
