@@ -1,0 +1,2157 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jouw Converteer Expert - Gratis Bestandsconverter</title>
+    <meta name="description" content="Converteer bestanden gratis in je browser. Video, audio, afbeeldingen en documenten. Geen upload nodig.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔄</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 800: '#1a1a2e', 900: '#0f0f1a', 700: '#252542' },
+                        accent: { 500: '#6c63ff', 600: '#5a52d5', 400: '#8b83ff' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- CDN Libraries (lazy-loaded where possible) -->
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js" defer></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .drop-zone.dragover { border-color: #6c63ff; background: rgba(108,99,255,0.1); transform: scale(1.02); }
+        .drop-zone { transition: all 0.3s ease; }
+        .progress-bar { transition: width 0.3s ease; }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(108,99,255,0.3); } 50% { box-shadow: 0 0 20px rgba(108,99,255,0.6); } }
+        .converting { animation: pulse-glow 2s infinite; }
+        .format-chip { transition: all 0.2s ease; }
+        .format-chip:hover { transform: translateY(-2px); }
+        .format-chip.selected { background: #6c63ff; color: white; }
+        input[type="range"] { -webkit-appearance: none; background: transparent; }
+        input[type="range"]::-webkit-slider-track { height: 6px; border-radius: 3px; background: #252542; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #6c63ff; margin-top: -6px; cursor: pointer; }
+        .warning-box { border-left: 4px solid #f59e0b; background: rgba(245,158,11,0.1); }
+        #articleBody p { margin-bottom: 1rem; }
+        #articleBody h1, #articleBody h2, #articleBody h3 { font-weight: 700; margin: 1.5rem 0 0.75rem; color: #e5e7eb; }
+        #articleBody h1 { font-size: 1.5rem; }
+        #articleBody h2 { font-size: 1.25rem; }
+        #articleBody h3 { font-size: 1.1rem; }
+        #articleBody a { color: #8b83ff; text-decoration: underline; }
+        #articleBody img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; }
+        #articleBody svg { max-width: 2rem; max-height: 2rem; display: inline-block; vertical-align: middle; }
+        #articleBody figure { margin: 1rem 0; }
+        #articleBody figcaption { font-size: 0.85rem; color: #9ca3af; margin-top: 0.5rem; }
+        #articleBody blockquote { border-left: 3px solid #6c63ff; padding-left: 1rem; color: #9ca3af; font-style: italic; margin: 1rem 0; }
+        #articleBody ul, #articleBody ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+        #articleBody li { margin-bottom: 0.25rem; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-thumb { background: #252542; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6c63ff; }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-dark-800 border-b border-dark-700 sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-accent-500 rounded-xl flex items-center justify-center text-xl">🔄</div>
+                <div>
+                    <h1 class="text-lg font-bold">Jouw Converteer Expert</h1>
+                    <p class="text-xs text-gray-400">Gratis bestandsconverter — alles blijft in je browser</p>
+                </div>
+            </div>
+            <button onclick="toggleInfo()" class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-dark-700 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Info Panel (hidden by default) -->
+    <div id="infoPanel" class="hidden max-w-3xl mx-auto px-4 mt-4">
+        <div class="bg-dark-800 rounded-xl p-4 border border-dark-700 fade-in">
+            <h3 class="font-semibold mb-2">Hoe werkt het?</h3>
+            <ul class="text-sm text-gray-400 space-y-1">
+                <li>📁 Je bestanden worden <strong class="text-gray-200">nooit geüpload</strong> — alles wordt lokaal in je browser verwerkt</li>
+                <li>🖼️ <strong class="text-gray-200">Afbeeldingen</strong>: JPEG, PNG, WebP, BMP, GIF, HEIC, SVG, TIFF → alle richtingen</li>
+                <li>🎬 <strong class="text-gray-200">Video</strong>: MP4, AVI, WebM, MOV, MKV → inclusief audio-extractie en GIF</li>
+                <li>🎵 <strong class="text-gray-200">Audio</strong>: MP3, WAV, OGG, FLAC, AAC, M4A → alle richtingen</li>
+                <li>📄 <strong class="text-gray-200">Documenten</strong>: PDF, DOCX, Markdown, CSV, JSON → diverse formaten</li>
+                <li>⚠️ Video/audio-conversies laden eenmalig FFmpeg (~30 MB)</li>
+                <li>🎬 <strong class="text-gray-200">YouTube</strong>: Plak een link → download als MP3 of MP4 (vereist lokale server + yt-dlp)</li>
+            </ul>
+            <button onclick="toggleInfo()" class="mt-3 text-xs text-accent-400 hover:underline">Sluiten</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Mode Tabs -->
+        <div class="flex bg-dark-800 rounded-xl p-1 border border-dark-700">
+            <button id="tabFiles" onclick="switchTab('files')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 bg-accent-500 text-white">
+                📁 Bestanden
+            </button>
+            <button id="tabYoutube" onclick="switchTab('youtube')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+                🎬 YouTube
+            </button>
+            <button id="tabArticle" onclick="switchTab('article')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+                📰 Artikelen
+            </button>
+        </div>
+
+        <!-- ==================== FILES TAB ==================== -->
+        <div id="filesTab">
+
+        <!-- Drop Zone -->
+        <div id="dropZone" class="drop-zone border-2 border-dashed border-dark-700 rounded-2xl p-8 text-center cursor-pointer hover:border-accent-500/50"
+             onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" class="hidden" onchange="handleFileSelect(event)">
+            <div id="dropContent">
+                <div class="text-5xl mb-4">📁</div>
+                <p class="text-lg font-medium">Sleep je bestand hierin</p>
+                <p class="text-sm text-gray-400 mt-1">of klik om een bestand te kiezen</p>
+                <p class="text-xs text-gray-500 mt-3">Ondersteunt: afbeeldingen, video, audio en documenten</p>
+            </div>
+        </div>
+
+        <!-- File Info (hidden until file selected) -->
+        <div id="fileInfo" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div id="fileIcon" class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 bg-dark-700">📄</div>
+                    <div class="min-w-0">
+                        <p id="fileName" class="font-medium truncate"></p>
+                        <p id="fileMeta" class="text-sm text-gray-400"></p>
+                    </div>
+                </div>
+                <button onclick="resetApp()" class="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-dark-700 transition flex-shrink-0" title="Verwijder bestand">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Warnings (dynamic) -->
+        <div id="warnings" class="hidden"></div>
+
+        <!-- Output Format Selection (hidden until file selected) -->
+        <div id="formatSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+            <label class="block text-sm font-medium text-gray-300 mb-3">Converteer naar:</label>
+            <div id="formatChips" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Settings Panel (dynamic based on conversion type) -->
+        <div id="settingsSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+            <div class="flex items-center gap-2 mb-3 cursor-pointer" onclick="toggleSettings()">
+                <svg class="w-4 h-4 text-gray-400 transition" id="settingsChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <span class="text-sm font-medium text-gray-300">Instellingen</span>
+            </div>
+            <div id="settingsContent" class="space-y-4"></div>
+        </div>
+
+        <!-- Convert Button -->
+        <div id="convertSection" class="hidden fade-in">
+            <button id="convertBtn" onclick="startConversion()" class="w-full bg-accent-500 hover:bg-accent-600 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2 text-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Converteer
+            </button>
+        </div>
+
+        <!-- Progress Bar (hidden until converting) -->
+        <div id="progressSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+            <div class="flex items-center justify-between mb-2">
+                <span id="progressLabel" class="text-sm text-gray-300">Bezig met converteren...</span>
+                <span id="progressPercent" class="text-sm font-mono text-accent-400">0%</span>
+            </div>
+            <div class="w-full bg-dark-700 rounded-full h-2.5">
+                <div id="progressBar" class="progress-bar bg-accent-500 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+            <p id="progressDetail" class="text-xs text-gray-500 mt-2"></p>
+        </div>
+
+        <!-- Result (hidden until done) -->
+        <div id="resultSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-accent-500/30">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center text-xl">✅</div>
+                <div>
+                    <p class="font-medium">Conversie geslaagd!</p>
+                    <p id="resultMeta" class="text-sm text-gray-400"></p>
+                </div>
+            </div>
+            <button id="downloadBtn" onclick="downloadResult()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span id="downloadLabel">Download</span>
+            </button>
+        </div>
+
+        <!-- Conversion History -->
+        <div id="historySection" class="hidden">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-medium text-gray-400">Recente conversies</h3>
+                <button onclick="clearHistory()" class="text-xs text-gray-500 hover:text-red-400 transition">Wissen</button>
+            </div>
+            <div id="historyList" class="space-y-2"></div>
+        </div>
+
+        </div><!-- end filesTab -->
+
+        <!-- ==================== YOUTUBE TAB ==================== -->
+        <div id="youtubeTab" class="hidden space-y-6">
+
+            <!-- YouTube URL Input -->
+            <div class="bg-dark-800 rounded-2xl p-6 border border-dark-700">
+                <div class="text-center mb-4">
+                    <div class="text-5xl mb-3">🎬</div>
+                    <p class="text-lg font-medium">YouTube naar MP3 / MP4</p>
+                    <p class="text-sm text-gray-400 mt-1">Plak een YouTube-link en download als audio of video</p>
+                </div>
+                <div class="relative">
+                    <input type="text" id="ytUrl" placeholder="https://www.youtube.com/watch?v=..."
+                           class="w-full bg-dark-700 border border-dark-700 focus:border-accent-500 rounded-xl px-4 py-3 text-sm text-gray-200 outline-none transition"
+                           onkeydown="if(event.key==='Enter') fetchYoutubeInfo()">
+                    <button onclick="fetchYoutubeInfo()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-500 hover:bg-accent-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
+                        Zoek
+                    </button>
+                </div>
+            </div>
+
+            <!-- YouTube Video Info (hidden until URL entered) -->
+            <div id="ytInfo" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+                <div class="flex gap-4">
+                    <img id="ytThumb" src="" alt="" class="w-32 h-20 object-cover rounded-lg bg-dark-700 flex-shrink-0">
+                    <div class="min-w-0">
+                        <p id="ytTitle" class="font-medium truncate"></p>
+                        <p id="ytMeta" class="text-sm text-gray-400 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YouTube Format Selection -->
+            <div id="ytFormatSection" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+                <label class="block text-sm font-medium text-gray-300 mb-3">Download als:</label>
+                <div class="flex gap-3">
+                    <button onclick="selectYtFormat('mp3')" id="ytFmtMp3" class="format-chip flex-1 py-3 rounded-xl border border-dark-700 bg-dark-700 hover:border-accent-500 text-sm font-medium flex items-center justify-center gap-2">
+                        🎵 MP3 <span class="text-gray-500 text-xs">(audio)</span>
+                    </button>
+                    <button onclick="selectYtFormat('mp4')" id="ytFmtMp4" class="format-chip flex-1 py-3 rounded-xl border border-dark-700 bg-dark-700 hover:border-accent-500 text-sm font-medium flex items-center justify-center gap-2">
+                        🎬 MP4 <span class="text-gray-500 text-xs">(video)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- YouTube Download Button -->
+            <div id="ytDownloadSection" class="hidden fade-in">
+                <button id="ytDownloadBtn" onclick="startYoutubeDownload()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2 text-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Download
+                </button>
+            </div>
+
+            <!-- YouTube Progress -->
+            <div id="ytProgress" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+                <div class="flex items-center justify-between mb-2">
+                    <span id="ytProgressLabel" class="text-sm text-gray-300">Bezig met downloaden...</span>
+                    <span id="ytProgressPercent" class="text-sm font-mono text-red-400">0%</span>
+                </div>
+                <div class="w-full bg-dark-700 rounded-full h-2.5">
+                    <div id="ytProgressBar" class="progress-bar bg-red-500 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                <p id="ytProgressDetail" class="text-xs text-gray-500 mt-2"></p>
+            </div>
+
+            <!-- YouTube Result -->
+            <div id="ytResult" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-green-500/30">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center text-xl">✅</div>
+                    <div>
+                        <p class="font-medium">Download klaar!</p>
+                        <p id="ytResultMeta" class="text-sm text-gray-400"></p>
+                    </div>
+                </div>
+                <button id="ytResultBtn" onclick="downloadYoutubeFile()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span id="ytDownloadLabel">Download bestand</span>
+                </button>
+            </div>
+
+            <!-- Worker URL Config (shown only on GitHub Pages / non-localhost) -->
+            <div id="workerConfig" class="hidden fade-in bg-dark-800 rounded-xl p-4 border border-dark-700">
+                <label class="block text-sm font-medium text-gray-300 mb-2">☁️ Cloudflare Worker URL</label>
+                <p class="text-xs text-gray-500 mb-3">Voer je Worker URL in voor YouTube en Artikelen online. Zie README voor setup.</p>
+                <div class="flex gap-2">
+                    <input type="text" id="workerUrlInput" placeholder="https://jouw-worker.workers.dev"
+                           class="flex-1 bg-dark-700 border border-dark-700 focus:border-accent-500 rounded-lg px-3 py-2 text-sm text-gray-200 outline-none transition">
+                    <button onclick="saveWorkerUrl()" class="bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                        Opslaan
+                    </button>
+                </div>
+                <p id="workerConfigStatus" class="text-xs mt-1"></p>
+            </div>
+
+            <!-- Server Status Warning -->
+            <div id="ytServerWarning" class="warning-box rounded-lg p-3">
+                <p class="text-sm text-yellow-200/80">⚠️ YouTube-downloads vereisen de lokale server of een Cloudflare Worker.</p>
+                <code class="block mt-2 text-xs text-accent-400 bg-dark-900 rounded p-2">pip install yt-dlp && python3 server.py</code>
+            </div>
+
+        </div><!-- end youtubeTab -->
+
+        <!-- ==================== ARTICLE TAB ==================== -->
+        <div id="articleTab" class="hidden space-y-6">
+
+            <!-- Article URL Input -->
+            <div class="bg-dark-800 rounded-2xl p-6 border border-dark-700">
+                <div class="text-center mb-4">
+                    <div class="text-5xl mb-3">📰</div>
+                    <p class="text-lg font-medium">Artikel Lezer</p>
+                    <p class="text-sm text-gray-400 mt-1">Plak een link naar een artikel en lees het zonder afleiding</p>
+                </div>
+                <div class="relative">
+                    <input type="text" id="articleUrl" placeholder="https://nos.nl/artikel/..."
+                           class="w-full bg-dark-700 border border-dark-700 focus:border-green-500 rounded-xl px-4 py-3 text-sm text-gray-200 outline-none transition"
+                           onkeydown="if(event.key==='Enter') fetchArticle()">
+                    <button onclick="fetchArticle()" id="articleFetchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
+                        Lees
+                    </button>
+                </div>
+            </div>
+
+            <!-- Article Loading -->
+            <div id="articleLoading" class="hidden fade-in text-center py-8">
+                <svg class="w-8 h-8 animate-spin mx-auto text-green-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                <p class="text-sm text-gray-400 mt-3">Artikel ophalen...</p>
+            </div>
+
+            <!-- Article Content -->
+            <div id="articleContent" class="hidden fade-in">
+                <div class="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
+                    <!-- Article Header -->
+                    <div class="p-6 border-b border-dark-700">
+                        <h2 id="articleTitle" class="text-xl font-bold leading-tight"></h2>
+                        <div class="flex items-center gap-3 mt-3">
+                            <a id="articleSource" href="#" target="_blank" class="text-xs text-accent-400 hover:underline truncate"></a>
+                            <button onclick="copyArticle()" class="text-xs text-gray-500 hover:text-white transition flex items-center gap-1 flex-shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                                Kopieer tekst
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Article Body -->
+                    <div id="articleBody" class="p-6 prose prose-invert max-w-none leading-relaxed text-gray-300" style="font-size:1.05rem;line-height:1.8"></div>
+                </div>
+            </div>
+
+            <!-- Article Error -->
+            <div id="articleError" class="hidden fade-in warning-box rounded-lg p-4">
+                <p class="text-sm text-yellow-200/80" id="articleErrorMsg"></p>
+            </div>
+
+            <!-- Article Info -->
+            <div class="bg-dark-800/50 rounded-lg p-3 border border-dark-700/50">
+                <p class="text-xs text-gray-500">Werkt als browser Reader Mode: haalt de HTML op en extraheert de artikeltekst. Bij zachte paywalls (content in HTML, verborgen door JavaScript) wordt de tekst zichtbaar. Bij harde paywalls (content niet in HTML) werkt dit niet.</p>
+            </div>
+
+        </div><!-- end articleTab -->
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gray-600 py-6">
+        Jouw Converteer Expert — Bestanden verlaten nooit je browser
+    </footer>
+
+    <!-- FFmpeg.wasm (loaded on demand) -->
+    <script>
+    // ============================================================
+    // 1. APP STATE & CONFIG
+    // ============================================================
+    const state = {
+        file: null,
+        inputFormat: null,
+        outputFormat: null,
+        category: null,
+        resultBlob: null,
+        resultFilename: null,
+        ffmpegLoaded: false,
+        ffmpegLoading: false,
+        ffmpeg: null,
+        converting: false,
+        history: [],
+        settingsOpen: true
+    };
+
+    // Format categories and MIME types
+    const FORMAT_INFO = {
+        // Images
+        'jpeg': { category: 'image', mime: 'image/jpeg', label: 'JPEG', icon: '🖼️' },
+        'jpg':  { category: 'image', mime: 'image/jpeg', label: 'JPG', icon: '🖼️' },
+        'png':  { category: 'image', mime: 'image/png', label: 'PNG', icon: '🖼️' },
+        'webp': { category: 'image', mime: 'image/webp', label: 'WebP', icon: '🖼️' },
+        'bmp':  { category: 'image', mime: 'image/bmp', label: 'BMP', icon: '🖼️' },
+        'gif':  { category: 'image', mime: 'image/gif', label: 'GIF', icon: '🖼️' },
+        'svg':  { category: 'image', mime: 'image/svg+xml', label: 'SVG', icon: '🖼️' },
+        'heic': { category: 'image', mime: 'image/heic', label: 'HEIC', icon: '🖼️' },
+        'heif': { category: 'image', mime: 'image/heif', label: 'HEIF', icon: '🖼️' },
+        'tiff': { category: 'image', mime: 'image/tiff', label: 'TIFF', icon: '🖼️' },
+        'ico':  { category: 'image', mime: 'image/x-icon', label: 'ICO', icon: '🖼️' },
+        // Video
+        'mp4':  { category: 'video', mime: 'video/mp4', label: 'MP4', icon: '🎬' },
+        'avi':  { category: 'video', mime: 'video/x-msvideo', label: 'AVI', icon: '🎬' },
+        'webm': { category: 'video', mime: 'video/webm', label: 'WebM', icon: '🎬' },
+        'mov':  { category: 'video', mime: 'video/quicktime', label: 'MOV', icon: '🎬' },
+        'mkv':  { category: 'video', mime: 'video/x-matroska', label: 'MKV', icon: '🎬' },
+        // Audio
+        'mp3':  { category: 'audio', mime: 'audio/mpeg', label: 'MP3', icon: '🎵' },
+        'wav':  { category: 'audio', mime: 'audio/wav', label: 'WAV', icon: '🎵' },
+        'ogg':  { category: 'audio', mime: 'audio/ogg', label: 'OGG', icon: '🎵' },
+        'flac': { category: 'audio', mime: 'audio/flac', label: 'FLAC', icon: '🎵' },
+        'aac':  { category: 'audio', mime: 'audio/aac', label: 'AAC', icon: '🎵' },
+        'm4a':  { category: 'audio', mime: 'audio/mp4', label: 'M4A', icon: '🎵' },
+        // Documents
+        'pdf':  { category: 'document', mime: 'application/pdf', label: 'PDF', icon: '📄' },
+        'docx': { category: 'document', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', label: 'DOCX', icon: '📝' },
+        'md':   { category: 'document', mime: 'text/markdown', label: 'Markdown', icon: '📝' },
+        'txt':  { category: 'document', mime: 'text/plain', label: 'TXT', icon: '📝' },
+        'html': { category: 'document', mime: 'text/html', label: 'HTML', icon: '🌐' },
+        'csv':  { category: 'document', mime: 'text/csv', label: 'CSV', icon: '📊' },
+        'json': { category: 'document', mime: 'application/json', label: 'JSON', icon: '📊' },
+        'epub': { category: 'document', mime: 'application/epub+zip', label: 'EPUB', icon: '📚' },
+    };
+
+    // Conversion matrix: input format -> [possible output formats]
+    const CONVERSIONS = {
+        // Images
+        'jpeg': ['png', 'webp', 'bmp', 'pdf'],
+        'jpg':  ['png', 'webp', 'bmp', 'pdf'],
+        'png':  ['jpeg', 'webp', 'bmp', 'pdf'],
+        'webp': ['jpeg', 'png', 'bmp', 'pdf'],
+        'bmp':  ['jpeg', 'png', 'webp', 'pdf'],
+        'gif':  ['jpeg', 'png', 'webp', 'pdf'],
+        'svg':  ['png', 'jpeg', 'webp', 'pdf'],
+        'heic': ['jpeg', 'png', 'webp', 'pdf'],
+        'heif': ['jpeg', 'png', 'webp', 'pdf'],
+        'tiff': ['jpeg', 'png', 'webp', 'pdf'],
+        'ico':  ['png', 'jpeg', 'webp'],
+        // Video
+        'mp4':  ['webm', 'avi', 'mov', 'mp3', 'wav', 'gif'],
+        'avi':  ['mp4', 'webm', 'mov', 'mp3', 'wav'],
+        'webm': ['mp4', 'avi', 'mov', 'mp3', 'wav'],
+        'mov':  ['mp4', 'webm', 'avi', 'mp3', 'wav'],
+        'mkv':  ['mp4', 'webm', 'avi', 'mp3', 'wav'],
+        // Audio
+        'mp3':  ['wav', 'ogg', 'aac'],
+        'wav':  ['mp3', 'ogg', 'aac'],
+        'ogg':  ['mp3', 'wav', 'aac'],
+        'flac': ['mp3', 'wav', 'ogg'],
+        'aac':  ['mp3', 'wav', 'ogg'],
+        'm4a':  ['mp3', 'wav', 'ogg'],
+        // Documents
+        'pdf':  ['txt', 'png', 'epub'],
+        'docx': ['html', 'pdf', 'txt'],
+        'md':   ['html', 'pdf'],
+        'csv':  ['json'],
+        'json': ['csv'],
+        'txt':  ['pdf'],
+        'html': ['pdf', 'txt'],
+    };
+
+    // ============================================================
+    // 2. UI CONTROLLER
+    // ============================================================
+    function toggleInfo() {
+        document.getElementById('infoPanel').classList.toggle('hidden');
+    }
+
+    function toggleSettings() {
+        state.settingsOpen = !state.settingsOpen;
+        document.getElementById('settingsContent').classList.toggle('hidden', !state.settingsOpen);
+        document.getElementById('settingsChevron').style.transform = state.settingsOpen ? 'rotate(180deg)' : '';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    }
+
+    function getExtension(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        // Normalize some extensions
+        if (ext === 'jpeg') return 'jpg';
+        return ext;
+    }
+
+    function detectFormat(file) {
+        let ext = getExtension(file.name);
+        // Check if we know this extension
+        if (FORMAT_INFO[ext]) return ext;
+        // Try MIME type fallback
+        for (const [format, info] of Object.entries(FORMAT_INFO)) {
+            if (file.type === info.mime) return format;
+        }
+        return null;
+    }
+
+    function showWarnings(inputFormat, outputFormat) {
+        const warningsEl = document.getElementById('warnings');
+        const warnings = [];
+
+        // Transparency loss
+        if (['png', 'webp', 'gif', 'svg'].includes(inputFormat) && ['jpeg', 'jpg', 'bmp'].includes(outputFormat)) {
+            warnings.push('Transparantie gaat verloren bij deze conversie. Transparante delen worden wit.');
+        }
+        // PDF to EPUB
+        if (inputFormat === 'pdf' && outputFormat === 'epub') {
+            warnings.push('PDF naar EPUB is een basale conversie. Alleen tekst wordt geëxtraheerd — complexe opmaak, tabellen en kolommen gaan verloren.');
+        }
+        // DOCX to PDF
+        if (inputFormat === 'docx' && outputFormat === 'pdf') {
+            warnings.push('DOCX naar PDF ondersteunt basale opmaak (tekst, koppen, lijsten). Complexe tabellen en grafieken worden mogelijk niet correct weergegeven.');
+        }
+        // Video to GIF
+        if (['mp4', 'avi', 'webm', 'mov', 'mkv'].includes(inputFormat) && outputFormat === 'gif') {
+            warnings.push('Video naar GIF kan grote bestanden opleveren. Pas de instellingen aan om de bestandsgrootte te beperken.');
+        }
+        // Large file warning
+        if (state.file && state.file.size > 500 * 1024 * 1024) {
+            warnings.push('Dit is een groot bestand (>500 MB). De conversie kan veel geheugen gebruiken en langzaam zijn.');
+        }
+        // FFmpeg needed
+        const needsFFmpeg = ['video', 'audio'].includes(FORMAT_INFO[inputFormat]?.category) ||
+                           (['video', 'audio'].includes(FORMAT_INFO[outputFormat]?.category) && FORMAT_INFO[inputFormat]?.category !== 'image');
+        if (needsFFmpeg && !state.ffmpegLoaded) {
+            warnings.push('Voor deze conversie wordt FFmpeg geladen (~30 MB eenmalige download). Dit kan even duren.');
+        }
+
+        if (warnings.length > 0) {
+            warningsEl.innerHTML = warnings.map(w =>
+                `<div class="warning-box rounded-lg p-3 mb-2 fade-in"><p class="text-sm text-yellow-200/80">⚠️ ${w}</p></div>`
+            ).join('');
+            warningsEl.classList.remove('hidden');
+        } else {
+            warningsEl.classList.add('hidden');
+        }
+    }
+
+    function showFormatChips(inputFormat) {
+        const outputs = CONVERSIONS[inputFormat] || [];
+        const container = document.getElementById('formatChips');
+        container.innerHTML = '';
+
+        if (outputs.length === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-500">Geen conversies beschikbaar voor dit formaat.</p>';
+            return;
+        }
+
+        outputs.forEach(fmt => {
+            const info = FORMAT_INFO[fmt];
+            const chip = document.createElement('button');
+            chip.className = 'format-chip px-4 py-2 rounded-lg border border-dark-700 bg-dark-700 hover:border-accent-500 text-sm font-medium flex items-center gap-2';
+            chip.innerHTML = `${info.icon} ${info.label}`;
+            chip.onclick = () => selectOutputFormat(fmt);
+            container.appendChild(chip);
+        });
+    }
+
+    function selectOutputFormat(format) {
+        state.outputFormat = format;
+        // Update chip styles
+        document.querySelectorAll('.format-chip').forEach(chip => {
+            chip.classList.remove('selected', 'border-accent-500');
+            chip.classList.add('border-dark-700');
+        });
+        const chips = document.querySelectorAll('.format-chip');
+        const outputs = CONVERSIONS[state.inputFormat] || [];
+        const idx = outputs.indexOf(format);
+        if (idx >= 0 && chips[idx]) {
+            chips[idx].classList.add('selected', 'border-accent-500');
+            chips[idx].classList.remove('border-dark-700');
+        }
+        // Show settings and convert button
+        showSettings(state.inputFormat, format);
+        showWarnings(state.inputFormat, format);
+        document.getElementById('convertSection').classList.remove('hidden');
+    }
+
+    function showSettings(inputFormat, outputFormat) {
+        const settingsSection = document.getElementById('settingsSection');
+        const settingsContent = document.getElementById('settingsContent');
+        const inputCat = FORMAT_INFO[inputFormat]?.category;
+        const outputCat = FORMAT_INFO[outputFormat]?.category;
+        let html = '';
+
+        // JPEG quality
+        if (['jpeg', 'jpg'].includes(outputFormat)) {
+            html += `
+                <div>
+                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
+                        <span>JPEG Kwaliteit</span><span id="qualityValue" class="font-mono text-accent-400">85%</span>
+                    </label>
+                    <input type="range" id="jpegQuality" min="1" max="100" value="85" class="w-full" oninput="document.getElementById('qualityValue').textContent=this.value+'%'">
+                    <p class="text-xs text-gray-500 mt-1">Lager = kleiner bestand, minder kwaliteit</p>
+                </div>`;
+        }
+
+        // WebP quality
+        if (outputFormat === 'webp') {
+            html += `
+                <div>
+                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
+                        <span>WebP Kwaliteit</span><span id="webpQualityValue" class="font-mono text-accent-400">85%</span>
+                    </label>
+                    <input type="range" id="webpQuality" min="1" max="100" value="85" class="w-full" oninput="document.getElementById('webpQualityValue').textContent=this.value+'%'">
+                </div>`;
+        }
+
+        // Audio bitrate
+        if (['mp3', 'ogg', 'aac'].includes(outputFormat) || (inputCat === 'video' && ['mp3', 'wav'].includes(outputFormat))) {
+            html += `
+                <div>
+                    <label class="text-sm text-gray-300 mb-1 block">Audio Bitrate</label>
+                    <select id="audioBitrate" class="w-full bg-dark-700 border border-dark-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                        <option value="128">128 kbps (standaard)</option>
+                        <option value="192">192 kbps (goed)</option>
+                        <option value="256">256 kbps (hoog)</option>
+                        <option value="320">320 kbps (maximaal)</option>
+                    </select>
+                </div>`;
+        }
+
+        // Video to GIF settings
+        if (inputCat === 'video' && outputFormat === 'gif') {
+            html += `
+                <div>
+                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
+                        <span>Framerate (fps)</span><span id="fpsValue" class="font-mono text-accent-400">10</span>
+                    </label>
+                    <input type="range" id="gifFps" min="5" max="30" value="10" class="w-full" oninput="document.getElementById('fpsValue').textContent=this.value">
+                </div>
+                <div>
+                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
+                        <span>Max breedte (px)</span><span id="gifWidthValue" class="font-mono text-accent-400">480</span>
+                    </label>
+                    <input type="range" id="gifWidth" min="160" max="1280" value="480" step="80" class="w-full" oninput="document.getElementById('gifWidthValue').textContent=this.value">
+                </div>
+                <div>
+                    <label class="flex items-center justify-between text-sm text-gray-300 mb-1">
+                        <span>Max duur (sec)</span><span id="gifDurationValue" class="font-mono text-accent-400">10</span>
+                    </label>
+                    <input type="range" id="gifDuration" min="1" max="30" value="10" class="w-full" oninput="document.getElementById('gifDurationValue').textContent=this.value">
+                </div>`;
+        }
+
+        // Video quality
+        if (inputCat === 'video' && ['mp4', 'webm', 'avi', 'mov'].includes(outputFormat)) {
+            html += `
+                <div>
+                    <label class="text-sm text-gray-300 mb-1 block">Video Kwaliteit</label>
+                    <select id="videoQuality" class="w-full bg-dark-700 border border-dark-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                        <option value="high">Hoog (groot bestand)</option>
+                        <option value="medium" selected>Normaal (aanbevolen)</option>
+                        <option value="low">Laag (klein bestand)</option>
+                    </select>
+                </div>`;
+        }
+
+        // PDF page range for PDF -> PNG
+        if (inputFormat === 'pdf' && outputFormat === 'png') {
+            html += `
+                <div>
+                    <label class="text-sm text-gray-300 mb-1 block">Pagina's (leeg = alle pagina's als ZIP)</label>
+                    <input type="text" id="pdfPages" placeholder="bijv. 1-5 of 1,3,5" class="w-full bg-dark-700 border border-dark-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                </div>`;
+        }
+
+        if (html) {
+            settingsContent.innerHTML = html;
+            settingsSection.classList.remove('hidden');
+        } else {
+            settingsSection.classList.add('hidden');
+        }
+    }
+
+    function setProgress(percent, label, detail) {
+        document.getElementById('progressBar').style.width = percent + '%';
+        document.getElementById('progressPercent').textContent = Math.round(percent) + '%';
+        if (label) document.getElementById('progressLabel').textContent = label;
+        if (detail) document.getElementById('progressDetail').textContent = detail;
+    }
+
+    function resetApp() {
+        state.file = null;
+        state.inputFormat = null;
+        state.outputFormat = null;
+        state.category = null;
+        state.resultBlob = null;
+        state.resultFilename = null;
+        state.converting = false;
+
+        document.getElementById('fileInfo').classList.add('hidden');
+        document.getElementById('formatSection').classList.add('hidden');
+        document.getElementById('settingsSection').classList.add('hidden');
+        document.getElementById('convertSection').classList.add('hidden');
+        document.getElementById('progressSection').classList.add('hidden');
+        document.getElementById('resultSection').classList.add('hidden');
+        document.getElementById('warnings').classList.add('hidden');
+        document.getElementById('fileInput').value = '';
+        document.getElementById('convertBtn').disabled = false;
+        document.getElementById('convertBtn').classList.remove('converting');
+    }
+
+    // ============================================================
+    // 3. FILE HANDLING & FORMAT DETECTION
+    // ============================================================
+    function handleFileSelect(event) {
+        const file = event.target.files?.[0] || event.dataTransfer?.files?.[0];
+        if (!file) return;
+        processFile(file);
+    }
+
+    function processFile(file) {
+        resetApp();
+        state.file = file;
+        state.inputFormat = detectFormat(file);
+
+        if (!state.inputFormat) {
+            alert('Dit bestandsformaat wordt niet herkend. Probeer een ander bestand.');
+            return;
+        }
+
+        state.category = FORMAT_INFO[state.inputFormat]?.category;
+
+        // Show file info
+        const info = FORMAT_INFO[state.inputFormat];
+        document.getElementById('fileIcon').textContent = info?.icon || '📄';
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileMeta').textContent = `${info?.label || state.inputFormat.toUpperCase()} — ${formatFileSize(file.size)}`;
+        document.getElementById('fileInfo').classList.remove('hidden');
+
+        // Show format chips
+        showFormatChips(state.inputFormat);
+        document.getElementById('formatSection').classList.remove('hidden');
+
+        // Auto-select first if only one option
+        const outputs = CONVERSIONS[state.inputFormat] || [];
+        if (outputs.length === 1) {
+            selectOutputFormat(outputs[0]);
+        }
+    }
+
+    // Drag and drop
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+    });
+    dropZone.addEventListener('drop', e => {
+        const file = e.dataTransfer.files[0];
+        if (file) processFile(file);
+    });
+    // Also support body-level drop
+    document.body.addEventListener('dragover', e => e.preventDefault());
+    document.body.addEventListener('drop', e => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file) processFile(file);
+    });
+
+    // ============================================================
+    // 4. CONVERSION ROUTER
+    // ============================================================
+    async function startConversion() {
+        if (state.converting || !state.file || !state.outputFormat) return;
+        state.converting = true;
+
+        const btn = document.getElementById('convertBtn');
+        btn.disabled = true;
+        btn.classList.add('converting');
+        btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Bezig...';
+
+        document.getElementById('progressSection').classList.remove('hidden');
+        document.getElementById('resultSection').classList.add('hidden');
+        setProgress(0, 'Bezig met converteren...', '');
+
+        try {
+            const inputCat = FORMAT_INFO[state.inputFormat]?.category;
+            const outputCat = FORMAT_INFO[state.outputFormat]?.category;
+            let result;
+
+            if (inputCat === 'image' && (outputCat === 'image' || state.outputFormat === 'pdf')) {
+                result = await convertImage();
+            } else if (inputCat === 'video' || inputCat === 'audio') {
+                result = await convertMedia();
+            } else if (inputCat === 'document') {
+                result = await convertDocument();
+            } else {
+                throw new Error('Deze conversie wordt niet ondersteund.');
+            }
+
+            state.resultBlob = result.blob;
+            state.resultFilename = result.filename;
+
+            // Show result
+            setProgress(100, 'Conversie voltooid!', '');
+            document.getElementById('resultMeta').textContent =
+                `${state.file.name} → ${result.filename} (${formatFileSize(result.blob.size)})`;
+            document.getElementById('downloadLabel').textContent = `Download ${result.filename}`;
+            document.getElementById('resultSection').classList.remove('hidden');
+
+            // Add to history
+            addToHistory(state.file.name, result.filename, state.file.size, result.blob.size);
+
+        } catch (error) {
+            console.error('Conversion error:', error?.message || error?.name || JSON.stringify(error));
+            setProgress(0, 'Conversie mislukt', error?.message || error?.name || 'Er is een onbekende fout opgetreden.');
+            document.getElementById('progressBar').classList.remove('bg-accent-500');
+            document.getElementById('progressBar').classList.add('bg-red-500');
+        } finally {
+            state.converting = false;
+            btn.disabled = false;
+            btn.classList.remove('converting');
+            btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Converteer';
+            document.getElementById('progressBar').classList.remove('bg-red-500');
+            document.getElementById('progressBar').classList.add('bg-accent-500');
+        }
+    }
+
+    // ============================================================
+    // 5. IMAGE CONVERTER (Canvas API)
+    // ============================================================
+    async function convertImage() {
+        setProgress(10, 'Afbeelding laden...', '');
+
+        let imageBitmap;
+        const file = state.file;
+
+        // HEIC/HEIF conversion via heic2any
+        if (['heic', 'heif'].includes(state.inputFormat)) {
+            setProgress(20, 'HEIC converteren...', 'heic2any wordt gebruikt');
+            if (typeof heic2any === 'undefined') {
+                throw new Error('HEIC library is nog niet geladen. Probeer het opnieuw.');
+            }
+            const blob = await heic2any({ blob: file, toType: 'image/png' });
+            const convertedBlob = Array.isArray(blob) ? blob[0] : blob;
+            imageBitmap = await createImageBitmap(convertedBlob);
+        } else if (state.inputFormat === 'svg') {
+            // SVG: render to canvas via Image element
+            setProgress(20, 'SVG renderen...', '');
+            const svgText = await file.text();
+            const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = () => reject(new Error('SVG kon niet geladen worden. Mogelijk bevat het externe bronnen.'));
+                img.src = url;
+            });
+            URL.revokeObjectURL(url);
+            // Use natural dimensions or default
+            const w = img.naturalWidth || 1024;
+            const h = img.naturalHeight || 1024;
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            // White bg for JPEG/BMP
+            if (['jpeg', 'jpg', 'bmp'].includes(state.outputFormat)) {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, w, h);
+            }
+            ctx.drawImage(img, 0, 0, w, h);
+            setProgress(70, 'Bezig met opslaan...', '');
+            if (state.outputFormat === 'pdf') {
+                return await imageToPdf(canvas);
+            }
+            return canvasToResult(canvas);
+        } else {
+            imageBitmap = await createImageBitmap(file);
+        }
+
+        setProgress(40, 'Canvas voorbereiden...', '');
+
+        const canvas = document.createElement('canvas');
+        canvas.width = imageBitmap.width;
+        canvas.height = imageBitmap.height;
+        const ctx = canvas.getContext('2d');
+
+        // White background for formats without transparency
+        if (['jpeg', 'jpg', 'bmp'].includes(state.outputFormat)) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        ctx.drawImage(imageBitmap, 0, 0);
+        setProgress(70, 'Bezig met opslaan...', '');
+
+        // Image to PDF
+        if (state.outputFormat === 'pdf') {
+            return await imageToPdf(canvas);
+        }
+
+        return canvasToResult(canvas);
+    }
+
+    function canvasToBmpBlob(canvas) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        const imgData = ctx.getImageData(0, 0, w, h).data;
+        const rowSize = Math.ceil((w * 3) / 4) * 4;
+        const fileSize = 54 + rowSize * h;
+        const buf = new ArrayBuffer(fileSize);
+        const view = new DataView(buf);
+        // BMP header
+        view.setUint8(0, 0x42); view.setUint8(1, 0x4D); // 'BM'
+        view.setUint32(2, fileSize, true);
+        view.setUint32(10, 54, true); // pixel offset
+        view.setUint32(14, 40, true); // DIB header size
+        view.setInt32(18, w, true);
+        view.setInt32(22, -h, true); // top-down
+        view.setUint16(26, 1, true); // planes
+        view.setUint16(28, 24, true); // 24-bit
+        view.setUint32(34, rowSize * h, true);
+        // Pixel data (BGR)
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const si = (y * w + x) * 4;
+                const di = 54 + y * rowSize + x * 3;
+                view.setUint8(di, imgData[si + 2]);     // B
+                view.setUint8(di + 1, imgData[si + 1]); // G
+                view.setUint8(di + 2, imgData[si]);       // R
+            }
+        }
+        return new Blob([buf], { type: 'image/bmp' });
+    }
+
+    function canvasToResult(canvas) {
+        return new Promise((resolve, reject) => {
+            const baseName = state.file.name.replace(/\.[^.]+$/, '');
+            const ext = state.outputFormat === 'jpeg' ? 'jpg' : state.outputFormat;
+
+            // BMP: custom encoder (canvas.toBlob doesn't support BMP)
+            if (state.outputFormat === 'bmp') {
+                try {
+                    const blob = canvasToBmpBlob(canvas);
+                    resolve({ blob, filename: `${baseName}.${ext}` });
+                } catch (e) { reject(e); }
+                return;
+            }
+
+            const outputInfo = FORMAT_INFO[state.outputFormat];
+            let mimeType = outputInfo?.mime || 'image/png';
+            let quality = undefined;
+
+            if (['jpeg', 'jpg'].includes(state.outputFormat)) {
+                const qEl = document.getElementById('jpegQuality');
+                quality = qEl ? parseInt(qEl.value) / 100 : 0.85;
+                mimeType = 'image/jpeg';
+            } else if (state.outputFormat === 'webp') {
+                const qEl = document.getElementById('webpQuality');
+                quality = qEl ? parseInt(qEl.value) / 100 : 0.85;
+            }
+
+            canvas.toBlob(blob => {
+                if (!blob) return reject(new Error('Canvas kon niet naar blob geconverteerd worden.'));
+                resolve({ blob, filename: `${baseName}.${ext}` });
+            }, mimeType, quality);
+        });
+    }
+
+    async function imageToPdf(canvas) {
+        setProgress(80, 'PDF aanmaken...', 'jsPDF wordt geladen');
+        await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+        const { jsPDF } = window.jspdf;
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        const ratio = canvas.width / canvas.height;
+        let pdfW, pdfH;
+        if (ratio > 1) {
+            pdfW = 297; pdfH = 297 / ratio; // landscape
+        } else {
+            pdfH = 297; pdfW = 297 * ratio; // portrait
+        }
+        const pdf = new jsPDF({ orientation: ratio > 1 ? 'landscape' : 'portrait', unit: 'mm', format: [pdfW, pdfH] });
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+
+        const blob = pdf.output('blob');
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.pdf` };
+    }
+
+    // ============================================================
+    // 6. MEDIA CONVERTER (FFmpeg.wasm)
+    // ============================================================
+    async function loadFFmpeg() {
+        if (state.ffmpegLoaded && state.ffmpeg) return state.ffmpeg;
+        if (state.ffmpegLoading) {
+            // Wait for existing load
+            while (state.ffmpegLoading) await new Promise(r => setTimeout(r, 200));
+            return state.ffmpeg;
+        }
+
+        state.ffmpegLoading = true;
+        setProgress(5, 'FFmpeg laden...', 'Eenmalige download (~30 MB)');
+
+        try {
+            // Load FFmpeg UMD bundle
+            await loadScript('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
+            await loadScript('https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/util.js');
+
+            const { FFmpeg } = FFmpegWASM;
+            const { fetchFile } = FFmpegUtil;
+            window._fetchFile = fetchFile;
+
+            const ffmpeg = new FFmpeg();
+
+            ffmpeg.on('progress', ({ progress, time }) => {
+                const pct = Math.min(Math.max(progress * 100, 0), 99);
+                setProgress(10 + pct * 0.85, 'Bezig met converteren...', `${Math.round(pct)}% verwerkt`);
+            });
+
+            ffmpeg.on('log', ({ message }) => {
+                console.log('[FFmpeg]', message);
+            });
+
+            setProgress(10, 'FFmpeg initialiseren...', 'WebAssembly core laden');
+            await ffmpeg.load({
+                coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+            });
+
+            state.ffmpeg = ffmpeg;
+            state.ffmpegLoaded = true;
+            return ffmpeg;
+        } catch (error) {
+            throw new Error('FFmpeg kon niet geladen worden: ' + error.message);
+        } finally {
+            state.ffmpegLoading = false;
+        }
+    }
+
+    async function convertMedia() {
+        const ffmpeg = await loadFFmpeg();
+        const fetchFile = window._fetchFile;
+
+        setProgress(15, 'Bestand laden in FFmpeg...', '');
+        const inputExt = state.inputFormat;
+        const outputExt = state.outputFormat;
+        const inputName = `input.${inputExt}`;
+        const outputName = `output.${outputExt}`;
+
+        await ffmpeg.writeFile(inputName, await fetchFile(state.file));
+        setProgress(20, 'Bezig met converteren...', '');
+
+        // Build FFmpeg command
+        const args = buildFFmpegArgs(inputName, outputName, inputExt, outputExt);
+        console.log('[FFmpeg] Command:', args.join(' '));
+
+        await ffmpeg.exec(args);
+
+        const data = await ffmpeg.readFile(outputName);
+        const mimeType = FORMAT_INFO[outputExt]?.mime || 'application/octet-stream';
+        const blob = new Blob([data.buffer], { type: mimeType });
+
+        // Cleanup
+        try { await ffmpeg.deleteFile(inputName); } catch(e) {}
+        try { await ffmpeg.deleteFile(outputName); } catch(e) {}
+
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.${outputExt}` };
+    }
+
+    function buildFFmpegArgs(input, output, inputExt, outputExt) {
+        const args = ['-i', input];
+
+        // Audio extraction from video
+        if (['mp4', 'avi', 'webm', 'mov', 'mkv'].includes(inputExt) && ['mp3', 'wav'].includes(outputExt)) {
+            args.push('-vn'); // no video
+            if (outputExt === 'mp3') {
+                const bitrateEl = document.getElementById('audioBitrate');
+                const bitrate = bitrateEl ? bitrateEl.value : '128';
+                args.push('-acodec', 'libmp3lame', '-b:a', bitrate + 'k');
+            } else if (outputExt === 'wav') {
+                args.push('-acodec', 'pcm_s16le');
+            }
+            args.push(output);
+            return args;
+        }
+
+        // Video to GIF
+        if (['mp4', 'avi', 'webm', 'mov', 'mkv'].includes(inputExt) && outputExt === 'gif') {
+            const fps = document.getElementById('gifFps')?.value || '10';
+            const width = document.getElementById('gifWidth')?.value || '480';
+            const duration = document.getElementById('gifDuration')?.value || '10';
+            args.push('-t', duration);
+            args.push('-vf', `fps=${fps},scale=${width}:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`);
+            args.push('-loop', '0');
+            args.push(output);
+            return args;
+        }
+
+        // Video to video
+        if (['mp4', 'avi', 'webm', 'mov', 'mkv'].includes(inputExt) && ['mp4', 'webm', 'avi', 'mov'].includes(outputExt)) {
+            const quality = document.getElementById('videoQuality')?.value || 'medium';
+            const crfMap = { high: '18', medium: '23', low: '28' };
+            if (outputExt === 'webm') {
+                args.push('-c:v', 'libvpx', '-crf', crfMap[quality], '-b:v', '0', '-c:a', 'libvorbis');
+            } else if (outputExt === 'mp4') {
+                args.push('-c:v', 'libx264', '-crf', crfMap[quality], '-preset', 'medium', '-c:a', 'aac');
+            } else {
+                args.push('-crf', crfMap[quality]);
+            }
+            args.push(output);
+            return args;
+        }
+
+        // Audio to audio
+        if (['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(inputExt)) {
+            if (outputExt === 'mp3') {
+                const bitrateEl = document.getElementById('audioBitrate');
+                const bitrate = bitrateEl ? bitrateEl.value : '128';
+                args.push('-acodec', 'libmp3lame', '-b:a', bitrate + 'k');
+            } else if (outputExt === 'wav') {
+                args.push('-acodec', 'pcm_s16le');
+            } else if (outputExt === 'ogg') {
+                args.push('-acodec', 'libvorbis', '-q:a', '5');
+            } else if (outputExt === 'aac') {
+                const bitrateEl = document.getElementById('audioBitrate');
+                const bitrate = bitrateEl ? bitrateEl.value : '128';
+                args.push('-acodec', 'aac', '-b:a', bitrate + 'k');
+            }
+            args.push(output);
+            return args;
+        }
+
+        // Default
+        args.push(output);
+        return args;
+    }
+
+    // ============================================================
+    // 7. DOCUMENT CONVERTER
+    // ============================================================
+    async function convertDocument() {
+        const input = state.inputFormat;
+        const output = state.outputFormat;
+
+        if (input === 'pdf' && output === 'txt') return await pdfToText();
+        if (input === 'pdf' && output === 'png') return await pdfToImages();
+        if (input === 'pdf' && output === 'epub') return await pdfToEpub();
+        if (input === 'docx' && output === 'html') return await docxToHtml();
+        if (input === 'docx' && output === 'pdf') return await docxToPdf();
+        if (input === 'docx' && output === 'txt') return await docxToTxt();
+        if (input === 'md' && output === 'html') return await mdToHtml();
+        if (input === 'md' && output === 'pdf') return await mdToPdf();
+        if (input === 'csv' && output === 'json') return await csvToJson();
+        if (input === 'json' && output === 'csv') return await jsonToCsv();
+        if (input === 'txt' && output === 'pdf') return await txtToPdf();
+        if (input === 'html' && output === 'pdf') return await htmlToPdf();
+        if (input === 'html' && output === 'txt') return await htmlToTxt();
+
+        throw new Error('Deze documentconversie wordt nog niet ondersteund.');
+    }
+
+    // --- PDF operations ---
+    async function loadPdfJs() {
+        if (!window.pdfjsLib) {
+            await loadScript('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js');
+            if (window.pdfjsLib) {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+            }
+        }
+        if (!window.pdfjsLib) throw new Error('PDF.js kon niet geladen worden.');
+        return window.pdfjsLib;
+    }
+
+    async function pdfToText() {
+        setProgress(10, 'PDF.js laden...', '');
+        const pdfjsLib = await loadPdfJs();
+        setProgress(20, 'PDF lezen...', '');
+
+        const data = await state.file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data }).promise;
+        let fullText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            setProgress(20 + (i / pdf.numPages) * 70, 'Tekst extraheren...', `Pagina ${i} van ${pdf.numPages}`);
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const pageText = content.items.map(item => item.str).join(' ');
+            fullText += `--- Pagina ${i} ---\n${pageText}\n\n`;
+        }
+
+        const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.txt` };
+    }
+
+    async function pdfToImages() {
+        setProgress(10, 'PDF.js laden...', '');
+        const pdfjsLib = await loadPdfJs();
+        setProgress(20, 'PDF lezen...', '');
+
+        const data = await state.file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data }).promise;
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+
+        // If multiple pages, create a ZIP
+        if (pdf.numPages > 1) {
+            await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+            const zip = new JSZip();
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                setProgress(20 + (i / pdf.numPages) * 70, 'Pagina renderen...', `Pagina ${i} van ${pdf.numPages}`);
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 2.0 });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport }).promise;
+
+                const pngBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                zip.file(`${baseName}_pagina_${i}.png`, pngBlob);
+            }
+
+            setProgress(95, 'ZIP maken...', '');
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            return { blob: zipBlob, filename: `${baseName}_paginas.zip` };
+        } else {
+            // Single page
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            return { blob, filename: `${baseName}.png` };
+        }
+    }
+
+    async function pdfToEpub() {
+        setProgress(10, 'Libraries laden...', '');
+        const pdfjsLib = await loadPdfJs();
+        await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+        setProgress(20, 'PDF tekst extraheren...', '');
+
+        const data = await state.file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data }).promise;
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        let chapters = [];
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            setProgress(20 + (i / pdf.numPages) * 50, 'Tekst extraheren...', `Pagina ${i} van ${pdf.numPages}`);
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const text = content.items.map(item => item.str).join(' ').trim();
+            if (text) chapters.push({ title: `Pagina ${i}`, content: text });
+        }
+
+        setProgress(75, 'EPUB samenstellen...', '');
+
+        // Build EPUB (ZIP-based format)
+        const zip = new JSZip();
+        zip.file('mimetype', 'application/epub+zip');
+
+        zip.file('META-INF/container.xml',
+            `<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles>
+</container>`);
+
+        let manifest = '', spine = '';
+        chapters.forEach((ch, i) => {
+            const id = `chapter${i+1}`;
+            manifest += `    <item id="${id}" href="${id}.xhtml" media-type="application/xhtml+xml"/>\n`;
+            spine += `    <itemref idref="${id}"/>\n`;
+
+            const escaped = ch.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const paragraphs = escaped.split(/\n+/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('\n');
+
+            zip.file(`OEBPS/${id}.xhtml`,
+                `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title></head>
+<body><h1>${ch.title}</h1>${paragraphs}</body></html>`);
+        });
+
+        zip.file('OEBPS/content.opf',
+            `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="uid" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="uid">urn:uuid:${crypto.randomUUID()}</dc:identifier>
+    <dc:title>${baseName}</dc:title>
+    <dc:language>nl</dc:language>
+    <meta property="dcterms:modified">${new Date().toISOString().split('.')[0]}Z</meta>
+  </metadata>
+  <manifest>
+    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+${manifest}  </manifest>
+  <spine>
+${spine}  </spine>
+</package>`);
+
+        let navItems = chapters.map((ch, i) => `<li><a href="chapter${i+1}.xhtml">${ch.title}</a></li>`).join('\n');
+        zip.file('OEBPS/nav.xhtml',
+            `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head><title>Inhoudsopgave</title></head>
+<body><nav epub:type="toc"><h1>Inhoudsopgave</h1><ol>${navItems}</ol></nav></body></html>`);
+
+        const epubBlob = await zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });
+        return { blob: epubBlob, filename: `${baseName}.epub` };
+    }
+
+    // --- DOCX operations ---
+    async function loadMammoth() {
+        if (!window.mammoth) {
+            await loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js');
+        }
+        if (!window.mammoth) throw new Error('Mammoth.js kon niet geladen worden.');
+        return window.mammoth;
+    }
+
+    async function docxToHtml() {
+        setProgress(10, 'Mammoth.js laden...', '');
+        const mammoth = await loadMammoth();
+        setProgress(30, 'DOCX verwerken...', '');
+
+        const arrayBuffer = await state.file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+
+        setProgress(80, 'HTML opslaan...', '');
+        const htmlContent = `<!DOCTYPE html>
+<html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${state.file.name}</title>
+<style>body{font-family:system-ui,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#333}
+img{max-width:100%;height:auto}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}</style>
+</head><body>${result.value}</body></html>`;
+
+        if (result.messages.length > 0) {
+            console.log('[Mammoth warnings]', result.messages);
+        }
+
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.html` };
+    }
+
+    async function docxToPdf() {
+        setProgress(10, 'Libraries laden...', '');
+        const mammoth = await loadMammoth();
+        await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+
+        setProgress(30, 'DOCX verwerken...', '');
+        const arrayBuffer = await state.file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+
+        setProgress(50, 'HTML renderen...', '');
+        // Create hidden iframe to render HTML
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:white;color:black;font-family:system-ui,sans-serif;padding:40px;line-height:1.6;';
+        container.innerHTML = result.value;
+        document.body.appendChild(container);
+
+        setProgress(60, 'PDF renderen...', '');
+        const canvas = await html2canvas(container, { scale: 2, useCORS: true });
+        document.body.removeChild(container);
+
+        setProgress(80, 'PDF samenstellen...', '');
+        const { jsPDF } = window.jspdf;
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdfWidth = 210; // A4 width in mm
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        let position = 0;
+        const pageHeight = 297; // A4 height
+
+        // Multi-page support
+        while (position < pdfHeight) {
+            if (position > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, -position, pdfWidth, pdfHeight);
+            position += pageHeight;
+        }
+
+        const blob = pdf.output('blob');
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.pdf` };
+    }
+
+    async function docxToTxt() {
+        setProgress(10, 'Mammoth.js laden...', '');
+        const mammoth = await loadMammoth();
+        setProgress(30, 'DOCX verwerken...', '');
+
+        const arrayBuffer = await state.file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+
+        const blob = new Blob([result.value], { type: 'text/plain;charset=utf-8' });
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.txt` };
+    }
+
+    // --- Markdown operations ---
+    async function mdToHtml() {
+        setProgress(20, 'Markdown verwerken...', '');
+        if (typeof marked === 'undefined') {
+            await loadScript('https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js');
+        }
+        const text = await state.file.text();
+        const html = marked.parse(text);
+
+        const fullHtml = `<!DOCTYPE html>
+<html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${state.file.name}</title>
+<style>body{font-family:system-ui,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#333}
+pre{background:#f4f4f4;padding:1rem;border-radius:8px;overflow-x:auto}code{background:#f4f4f4;padding:2px 6px;border-radius:4px}
+blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666}img{max-width:100%}</style>
+</head><body>${html}</body></html>`;
+
+        const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.html` };
+    }
+
+    async function mdToPdf() {
+        setProgress(10, 'Libraries laden...', '');
+        if (typeof marked === 'undefined') {
+            await loadScript('https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js');
+        }
+        await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+
+        setProgress(30, 'Markdown verwerken...', '');
+        const text = await state.file.text();
+        const html = marked.parse(text);
+
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:white;color:black;font-family:system-ui,sans-serif;padding:40px;line-height:1.6;';
+        container.innerHTML = html;
+        document.body.appendChild(container);
+
+        setProgress(60, 'PDF renderen...', '');
+        const canvas = await html2canvas(container, { scale: 2 });
+        document.body.removeChild(container);
+
+        const { jsPDF } = window.jspdf;
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdfWidth = 210;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        let position = 0;
+        const pageHeight = 297;
+        while (position < pdfHeight) {
+            if (position > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, -position, pdfWidth, pdfHeight);
+            position += pageHeight;
+        }
+
+        const blob = pdf.output('blob');
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.pdf` };
+    }
+
+    // --- CSV / JSON ---
+    async function csvToJson() {
+        setProgress(20, 'CSV lezen...', '');
+        const text = await state.file.text();
+        const lines = text.split('\n').filter(l => l.trim());
+        if (lines.length < 2) throw new Error('CSV bevat geen data (alleen een header of leeg).');
+
+        setProgress(50, 'Converteren naar JSON...', '');
+        // Detect delimiter
+        const firstLine = lines[0];
+        const delimiter = firstLine.includes(';') ? ';' : firstLine.includes('\t') ? '\t' : ',';
+
+        const headers = parseCsvLine(firstLine, delimiter);
+        const result = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCsvLine(lines[i], delimiter);
+            const obj = {};
+            headers.forEach((h, idx) => { obj[h.trim()] = values[idx]?.trim() || ''; });
+            result.push(obj);
+        }
+
+        const json = JSON.stringify(result, null, 2);
+        const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.json` };
+    }
+
+    function parseCsvLine(line, delimiter) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+                else inQuotes = !inQuotes;
+            } else if (ch === delimiter && !inQuotes) {
+                result.push(current);
+                current = '';
+            } else {
+                current += ch;
+            }
+        }
+        result.push(current);
+        return result;
+    }
+
+    async function jsonToCsv() {
+        setProgress(20, 'JSON lezen...', '');
+        const text = await state.file.text();
+        let data;
+        try { data = JSON.parse(text); } catch { throw new Error('Ongeldig JSON bestand.'); }
+
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new Error('JSON moet een array van objecten bevatten.');
+        }
+
+        setProgress(50, 'Converteren naar CSV...', '');
+        const headers = [...new Set(data.flatMap(obj => Object.keys(obj)))];
+        const csvLines = [headers.join(',')];
+        data.forEach(obj => {
+            const line = headers.map(h => {
+                let val = String(obj[h] ?? '');
+                if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+                    val = '"' + val.replace(/"/g, '""') + '"';
+                }
+                return val;
+            }).join(',');
+            csvLines.push(line);
+        });
+
+        const csv = csvLines.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.csv` };
+    }
+
+    // --- TXT / HTML to PDF ---
+    async function txtToPdf() {
+        setProgress(10, 'jsPDF laden...', '');
+        await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+        setProgress(30, 'Tekst verwerken...', '');
+
+        const text = await state.file.text();
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.setFontSize(11);
+
+        const lines = pdf.splitTextToSize(text, 170);
+        const pageHeight = 280;
+        let y = 20;
+
+        lines.forEach(line => {
+            if (y > pageHeight) { pdf.addPage(); y = 20; }
+            pdf.text(line, 20, y);
+            y += 6;
+        });
+
+        const blob = pdf.output('blob');
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.pdf` };
+    }
+
+    async function htmlToPdf() {
+        setProgress(10, 'Libraries laden...', '');
+        await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+
+        setProgress(30, 'HTML laden...', '');
+        const htmlText = await state.file.text();
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:white;color:black;font-family:system-ui,sans-serif;padding:40px;line-height:1.6;';
+        container.innerHTML = htmlText;
+        document.body.appendChild(container);
+
+        setProgress(60, 'PDF renderen...', '');
+        const canvas = await html2canvas(container, { scale: 2 });
+        document.body.removeChild(container);
+
+        const { jsPDF } = window.jspdf;
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdfWidth = 210;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        let position = 0;
+        while (position < pdfHeight) {
+            if (position > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, -position, pdfWidth, pdfHeight);
+            position += 297;
+        }
+
+        const blob = pdf.output('blob');
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.pdf` };
+    }
+
+    async function htmlToTxt() {
+        setProgress(30, 'HTML verwerken...', '');
+        const htmlText = await state.file.text();
+        const container = document.createElement('div');
+        container.innerHTML = htmlText;
+        const text = container.textContent || container.innerText || '';
+
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const baseName = state.file.name.replace(/\.[^.]+$/, '');
+        return { blob, filename: `${baseName}.txt` };
+    }
+
+    // ============================================================
+    // 8. DOWNLOAD MANAGER
+    // ============================================================
+    function downloadResult() {
+        if (!state.resultBlob || !state.resultFilename) return;
+        const url = URL.createObjectURL(state.resultBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = state.resultFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    // ============================================================
+    // 9. HISTORY MANAGER
+    // ============================================================
+    function addToHistory(inputName, outputName, inputSize, outputSize) {
+        state.history.unshift({
+            inputName, outputName,
+            inputSize: formatFileSize(inputSize),
+            outputSize: formatFileSize(outputSize),
+            time: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+        });
+        if (state.history.length > 20) state.history.pop();
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const section = document.getElementById('historySection');
+        const list = document.getElementById('historyList');
+        if (state.history.length === 0) {
+            section.classList.add('hidden');
+            return;
+        }
+        section.classList.remove('hidden');
+        list.innerHTML = state.history.map(h => `
+            <div class="bg-dark-800 rounded-lg p-3 border border-dark-700 flex items-center justify-between text-sm">
+                <div class="min-w-0">
+                    <span class="text-gray-300 truncate block">${h.inputName} → ${h.outputName}</span>
+                    <span class="text-xs text-gray-500">${h.inputSize} → ${h.outputSize}</span>
+                </div>
+                <span class="text-xs text-gray-500 flex-shrink-0 ml-3">${h.time}</span>
+            </div>
+        `).join('');
+    }
+
+    function clearHistory() {
+        state.history = [];
+        renderHistory();
+    }
+
+    // ============================================================
+    // 10. UTILITY FUNCTIONS
+    // ============================================================
+    function loadScript(url, type) {
+        return new Promise((resolve, reject) => {
+            // Check if already loaded
+            if (document.querySelector(`script[src="${url}"]`)) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = url;
+            if (type) script.type = type;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error(`Script kon niet geladen worden: ${url}`));
+            document.head.appendChild(script);
+        });
+    }
+
+    // ============================================================
+    // 11. TAB SWITCHING
+    // ============================================================
+    function switchTab(tab) {
+        const tabs = { files: 'filesTab', youtube: 'youtubeTab', article: 'articleTab' };
+        const btns = { files: 'tabFiles', youtube: 'tabYoutube', article: 'tabArticle' };
+        const colors = { files: 'bg-accent-500', youtube: 'bg-red-600', article: 'bg-green-600' };
+        const inactive = 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-gray-400 hover:text-white';
+        const active = 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-white';
+
+        for (const [key, id] of Object.entries(tabs)) {
+            document.getElementById(id).classList.toggle('hidden', key !== tab);
+            document.getElementById(btns[key]).className = key === tab ? `${active} ${colors[key]}` : inactive;
+        }
+        if (tab === 'youtube') checkYoutubeServer();
+    }
+
+    // ============================================================
+    // 12. ONLINE MODE DETECTION + WORKER CONFIG
+    // ============================================================
+    const isLocalServer = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    let workerUrl = localStorage.getItem('workerUrl') || '';
+
+    function getApiBase() {
+        if (isLocalServer) return '';  // Use relative URLs for local server
+        if (workerUrl) return workerUrl.replace(/\/$/, '');
+        return null;  // No API available
+    }
+
+    function saveWorkerUrl() {
+        const url = document.getElementById('workerUrlInput')?.value.trim();
+        if (url) {
+            workerUrl = url.replace(/\/$/, '');
+            localStorage.setItem('workerUrl', workerUrl);
+            document.getElementById('workerConfigStatus').textContent = '✅ Opgeslagen!';
+            document.getElementById('workerConfigStatus').className = 'text-xs text-green-400 mt-1';
+            setTimeout(() => {
+                document.getElementById('workerConfigStatus').textContent = '';
+                checkYoutubeServer();
+            }, 1000);
+        }
+    }
+
+    // Show/hide Worker URL config panel for online mode
+    function initOnlineMode() {
+        const workerConfig = document.getElementById('workerConfig');
+        if (workerConfig) {
+            workerConfig.classList.toggle('hidden', isLocalServer);
+        }
+        if (!isLocalServer && workerUrl) {
+            const input = document.getElementById('workerUrlInput');
+            if (input) input.value = workerUrl;
+        }
+    }
+
+    // ============================================================
+    // 13. YOUTUBE DOWNLOADER
+    // ============================================================
+    const ytState = {
+        url: '',
+        format: null,
+        jobId: null,
+        title: '',
+        polling: false,
+        onlineStreams: null  // Stores Piped stream URLs for online mode
+    };
+
+    async function checkYoutubeServer() {
+        const apiBase = getApiBase();
+        if (apiBase === null) {
+            // No API at all (GitHub Pages without Worker)
+            document.getElementById('ytServerWarning').classList.remove('hidden');
+            return;
+        }
+        try {
+            const resp = await fetch(apiBase + '/api/youtube/info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: 'test' }),
+                signal: AbortSignal.timeout(5000)
+            });
+            document.getElementById('ytServerWarning').classList.add('hidden');
+        } catch {
+            if (!isLocalServer && !workerUrl) {
+                document.getElementById('ytServerWarning').classList.remove('hidden');
+            } else {
+                document.getElementById('ytServerWarning').classList.remove('hidden');
+            }
+        }
+    }
+
+    function formatDuration(seconds) {
+        if (!seconds) return '';
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    async function fetchYoutubeInfo() {
+        const url = document.getElementById('ytUrl').value.trim();
+        if (!url) return;
+
+        if (!url.match(/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//)) {
+            alert('Voer een geldige YouTube-URL in.');
+            return;
+        }
+
+        const apiBase = getApiBase();
+        if (apiBase === null) {
+            alert('Configureer eerst je Cloudflare Worker URL, of start server.py lokaal.');
+            return;
+        }
+
+        ytState.url = url;
+        ytState.onlineStreams = null;
+
+        // Reset UI
+        document.getElementById('ytInfo').classList.add('hidden');
+        document.getElementById('ytFormatSection').classList.add('hidden');
+        document.getElementById('ytDownloadSection').classList.add('hidden');
+        document.getElementById('ytProgress').classList.add('hidden');
+        document.getElementById('ytResult').classList.add('hidden');
+
+        const searchBtn = document.querySelector('#youtubeTab .bg-accent-500');
+        const origText = searchBtn.textContent;
+        searchBtn.textContent = '...';
+        searchBtn.disabled = true;
+
+        try {
+            const resp = await fetch(apiBase + '/api/youtube/info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+
+            const data = await resp.json();
+
+            if (data.error) {
+                alert('Fout: ' + data.error);
+                return;
+            }
+
+            ytState.title = data.title;
+
+            // If online mode (Worker/Piped), store stream URLs
+            if (!isLocalServer && data.audioStream) {
+                ytState.onlineStreams = {
+                    audio: data.audioStream,
+                    video: data.videoStream
+                };
+            }
+
+            document.getElementById('ytThumb').src = data.thumbnail || '';
+            document.getElementById('ytTitle').textContent = data.title;
+            const duration = formatDuration(data.duration);
+            const uploader = data.uploader || '';
+            document.getElementById('ytMeta').textContent = [uploader, duration].filter(Boolean).join(' — ');
+
+            // Update format labels for online mode (audio = M4A, not MP3)
+            if (ytState.onlineStreams) {
+                const audioLabel = ytState.onlineStreams.audio?.format || 'Audio';
+                document.getElementById('ytFmtMp3').innerHTML = `🎵 ${audioLabel} <span class="text-gray-500 text-xs">(audio)</span>`;
+            } else {
+                document.getElementById('ytFmtMp3').innerHTML = '🎵 MP3 <span class="text-gray-500 text-xs">(audio)</span>';
+            }
+
+            document.getElementById('ytInfo').classList.remove('hidden');
+            document.getElementById('ytFormatSection').classList.remove('hidden');
+            document.getElementById('ytServerWarning').classList.add('hidden');
+
+        } catch (e) {
+            if (isLocalServer) {
+                alert('Kon geen verbinding maken met de server. Is server.py actief?');
+            } else {
+                alert('Kon geen verbinding maken met de Worker. Controleer de Worker URL.');
+            }
+        } finally {
+            searchBtn.textContent = origText;
+            searchBtn.disabled = false;
+        }
+    }
+
+    function selectYtFormat(format) {
+        ytState.format = format;
+        const mp3Btn = document.getElementById('ytFmtMp3');
+        const mp4Btn = document.getElementById('ytFmtMp4');
+
+        mp3Btn.classList.remove('selected', 'border-accent-500');
+        mp4Btn.classList.remove('selected', 'border-accent-500');
+        mp3Btn.classList.add('border-dark-700');
+        mp4Btn.classList.add('border-dark-700');
+
+        if (format === 'mp3') {
+            mp3Btn.classList.add('selected', 'border-accent-500');
+            mp3Btn.classList.remove('border-dark-700');
+        } else {
+            mp4Btn.classList.add('selected', 'border-accent-500');
+            mp4Btn.classList.remove('border-dark-700');
+        }
+
+        document.getElementById('ytDownloadSection').classList.remove('hidden');
+    }
+
+    async function startYoutubeDownload() {
+        if (!ytState.url || !ytState.format) return;
+
+        // === ONLINE MODE: Direct stream download via Worker ===
+        if (ytState.onlineStreams) {
+            const stream = ytState.format === 'mp3' ? ytState.onlineStreams.audio : ytState.onlineStreams.video;
+            if (!stream || !stream.url) {
+                alert('Geen stream beschikbaar voor dit formaat. Probeer het andere formaat.');
+                return;
+            }
+
+            const btn = document.getElementById('ytDownloadBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Bezig...';
+
+            document.getElementById('ytProgress').classList.remove('hidden');
+            setYtProgress(50, 'Download voorbereiden...', 'Stream wordt opgehaald via Piped...');
+
+            try {
+                // Use Worker to proxy the stream (avoids CORS issues)
+                const proxyUrl = workerUrl + '/api/youtube/stream?url=' + encodeURIComponent(stream.url);
+                const ext = ytState.format === 'mp3' ? (stream.format?.toLowerCase().includes('m4a') ? 'm4a' : 'webm') : 'mp4';
+                const filename = (ytState.title || 'video').replace(/[^a-zA-Z0-9\s\-_àáâãäåèéêëìíîïòóôõöùúûüýÿ]/g, '').trim() + '.' + ext;
+
+                setYtProgress(100, 'Download voltooid!', '');
+
+                document.getElementById('ytResultMeta').textContent = filename;
+                document.getElementById('ytDownloadLabel').textContent = `Download ${filename}`;
+                document.getElementById('ytResult').classList.remove('hidden');
+
+                // Store download URL for the button
+                ytState._onlineDownloadUrl = proxyUrl;
+                ytState._onlineFilename = filename;
+            } catch (e) {
+                setYtProgress(0, 'Download mislukt', e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Download';
+            }
+            return;
+        }
+
+        // === LOCAL MODE: Server-side download via yt-dlp ===
+        const btn = document.getElementById('ytDownloadBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Bezig...';
+
+        document.getElementById('ytProgress').classList.remove('hidden');
+        document.getElementById('ytResult').classList.add('hidden');
+        setYtProgress(0, 'Download starten...', '');
+
+        try {
+            const resp = await fetch('/api/youtube/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: ytState.url, format: ytState.format })
+            });
+
+            const data = await resp.json();
+
+            if (data.error) {
+                setYtProgress(0, 'Download mislukt', data.error);
+                return;
+            }
+
+            ytState.jobId = data.job_id;
+            pollYoutubeJob();
+
+        } catch (e) {
+            setYtProgress(0, 'Download mislukt', 'Kon geen verbinding maken met de server.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Download';
+        }
+    }
+
+    function setYtProgress(percent, label, detail) {
+        document.getElementById('ytProgressBar').style.width = Math.max(percent, 2) + '%';
+        document.getElementById('ytProgressPercent').textContent = Math.round(percent) + '%';
+        if (label) document.getElementById('ytProgressLabel').textContent = label;
+        if (detail !== undefined) document.getElementById('ytProgressDetail').textContent = detail;
+    }
+
+    async function pollYoutubeJob() {
+        if (ytState.polling) return;
+        ytState.polling = true;
+
+        const poll = async () => {
+            try {
+                const resp = await fetch(`/api/youtube/status/${ytState.jobId}`);
+                const data = await resp.json();
+
+                if (data.status === 'downloading') {
+                    setYtProgress(data.progress, 'Bezig met downloaden...', data.title ? `"${data.title}"` : 'yt-dlp is bezig...');
+                    setTimeout(poll, 1000);
+                } else if (data.status === 'done') {
+                    setYtProgress(100, 'Download voltooid!', '');
+                    document.getElementById('ytResultMeta').textContent = data.filename;
+                    document.getElementById('ytDownloadLabel').textContent = `Download ${data.filename}`;
+                    document.getElementById('ytResult').classList.remove('hidden');
+                    ytState.polling = false;
+                } else if (data.status === 'error') {
+                    setYtProgress(0, 'Download mislukt', data.error || 'Onbekende fout');
+                    ytState.polling = false;
+                }
+            } catch (e) {
+                setYtProgress(0, 'Verbinding verloren', 'Server reageert niet meer.');
+                ytState.polling = false;
+            }
+        };
+
+        poll();
+    }
+
+    function downloadYoutubeFile() {
+        // Online mode: download via Worker proxy URL
+        if (ytState._onlineDownloadUrl) {
+            const a = document.createElement('a');
+            a.href = ytState._onlineDownloadUrl;
+            a.download = ytState._onlineFilename || 'download';
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            return;
+        }
+        // Local mode: download from server
+        if (!ytState.jobId) return;
+        const a = document.createElement('a');
+        a.href = `/api/youtube/file/${ytState.jobId}`;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // ============================================================
+    // 14. ARTICLE READER (with Readability.js for online mode)
+    // ============================================================
+    let lastArticleText = '';
+    let readabilityLoaded = false;
+
+    async function loadReadability() {
+        if (readabilityLoaded) return;
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@mozilla/readability@0.5.0/Readability.min.js';
+            script.onload = () => { readabilityLoaded = true; resolve(); };
+            script.onerror = () => reject(new Error('Readability.js kon niet geladen worden'));
+            document.head.appendChild(script);
+        });
+    }
+
+    async function fetchArticle() {
+        const url = document.getElementById('articleUrl').value.trim();
+        if (!url) return;
+
+        document.getElementById('articleContent').classList.add('hidden');
+        document.getElementById('articleError').classList.add('hidden');
+        document.getElementById('articleLoading').classList.remove('hidden');
+
+        const btn = document.getElementById('articleFetchBtn');
+        btn.textContent = '...';
+        btn.disabled = true;
+
+        const apiBase = getApiBase();
+
+        try {
+            let title, contentHtml, articleUrl;
+
+            if (isLocalServer) {
+                // === LOCAL MODE: Server-side extraction ===
+                const resp = await fetch('/api/article', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await resp.json();
+                if (data.error) throw new Error(data.error);
+                title = data.title;
+                contentHtml = data.content;
+                articleUrl = data.url;
+            } else if (apiBase) {
+                // === ONLINE MODE: Worker fetches HTML, client-side Readability.js ===
+                await loadReadability();
+
+                const resp = await fetch(apiBase + '/api/article', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await resp.json();
+                if (data.error) throw new Error(data.error);
+
+                // Parse HTML and extract article with Readability.js
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.html, 'text/html');
+
+                // Set base URL for relative links
+                const base = doc.createElement('base');
+                base.href = data.url || url;
+                doc.head.prepend(base);
+
+                const reader = new Readability(doc);
+                const article = reader.parse();
+
+                if (!article) throw new Error('Kon geen artikelinhoud vinden op deze pagina.');
+
+                title = article.title;
+                contentHtml = article.content;
+                articleUrl = data.url || url;
+
+                // Clean up SVGs and unwanted elements
+                const tempContainer = document.createElement('div');
+                tempContainer.innerHTML = contentHtml;
+                tempContainer.querySelectorAll('svg, script, style, iframe, noscript, nav, aside, form, button, input').forEach(el => el.remove());
+                contentHtml = tempContainer.innerHTML;
+            } else {
+                throw new Error('Configureer je Cloudflare Worker URL om artikelen online te lezen, of start server.py lokaal.');
+            }
+
+            // Display article
+            document.getElementById('articleTitle').textContent = title || 'Geen titel';
+            try {
+                document.getElementById('articleSource').textContent = new URL(articleUrl).hostname;
+            } catch { document.getElementById('articleSource').textContent = articleUrl; }
+            document.getElementById('articleSource').href = articleUrl;
+            document.getElementById('articleBody').innerHTML = contentHtml;
+
+            // Store for copy
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = contentHtml;
+            lastArticleText = (title || '') + '\n\n' + (tempDiv.textContent || tempDiv.innerText || '');
+
+            document.getElementById('articleContent').classList.remove('hidden');
+
+        } catch (e) {
+            document.getElementById('articleErrorMsg').textContent = e.message || 'Er is een fout opgetreden.';
+            document.getElementById('articleError').classList.remove('hidden');
+        } finally {
+            document.getElementById('articleLoading').classList.add('hidden');
+            btn.textContent = 'Lees';
+            btn.disabled = false;
+        }
+    }
+
+    function copyArticle() {
+        if (!lastArticleText) return;
+        navigator.clipboard.writeText(lastArticleText).then(() => {
+            const btn = event.target.closest('button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '✓ Gekopieerd';
+            setTimeout(() => btn.innerHTML = orig, 2000);
+        });
+    }
+
+    // Init online mode on page load
+    initOnlineMode();
+    </script>
+</body>
+</html>
