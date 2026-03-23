@@ -92,7 +92,8 @@
                 <li>🎵 <strong class="text-slate-800">Audio</strong>: MP3, WAV, OGG, FLAC, AAC, M4A → alle richtingen</li>
                 <li>📄 <strong class="text-slate-800">Documenten</strong>: PDF, DOCX, Markdown, CSV, JSON → diverse formaten</li>
                 <li>⚠️ Video/audio-conversies laden eenmalig FFmpeg (~30 MB)</li>
-                <li>🎬 <strong class="text-slate-800">YouTube</strong>: Plak een link → download als MP3 of MP4 (vereist lokale server + yt-dlp)</li>
+                <li>🎬 <strong class="text-slate-800">YouTube</strong>: Plak een link → download als MP3 of MP4 (vereist lokale server: <code class="text-xs">python3 server.py</code>)</li>
+                <li>🎵 <strong class="text-slate-800">Spotify</strong>: Plak een Spotify-link → download als MP3 of FLAC (vereist lokale server + <code class="text-xs">pip install spotdl</code>)</li>
             </ul>
             <button onclick="toggleInfo()" class="mt-3 text-xs text-indigo-500 hover:underline">Sluiten</button>
         </div>
@@ -108,6 +109,9 @@
             </button>
             <button id="tabYoutube" onclick="switchTab('youtube')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50">
                 🎬 YouTube
+            </button>
+            <button id="tabSpotify" onclick="switchTab('spotify')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50">
+                🎵 Spotify
             </button>
             <button id="tabArticle" onclick="switchTab('article')" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50">
                 📰 Artikelen
@@ -307,11 +311,100 @@
 
             <!-- Server Status Warning -->
             <div id="ytServerWarning" class="warning-box rounded-lg p-3">
-                <p class="text-sm text-amber-800">⚠️ YouTube-downloads vereisen de lokale server of een Cloudflare Worker.</p>
+                <p class="text-sm text-amber-800">⚠️ YouTube-downloads vereisen de lokale server met yt-dlp.</p>
                 <code class="block mt-2 text-xs text-indigo-600 bg-indigo-50 rounded p-2">pip install yt-dlp && python3 server.py</code>
+                <p class="text-xs text-amber-700 mt-2">Open dan deze pagina op <strong>localhost:3002</strong>. Zie SERVER-HANDLEIDING.md voor meer info.</p>
             </div>
 
         </div><!-- end youtubeTab -->
+
+        <!-- ==================== SPOTIFY TAB ==================== -->
+        <div id="spotifyTab" class="hidden space-y-6">
+
+            <!-- Spotify URL Input -->
+            <div class="card rounded-2xl p-6">
+                <div class="text-center mb-4">
+                    <div class="text-5xl mb-3">🎵</div>
+                    <p class="text-lg font-medium text-slate-800">Spotify naar MP3 / FLAC</p>
+                    <p class="text-sm text-slate-500 mt-1">Plak een Spotify-link (nummer, album of playlist)</p>
+                </div>
+                <div class="relative">
+                    <input type="text" id="spUrl" placeholder="https://open.spotify.com/track/..."
+                           class="w-full bg-slate-50 border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-100 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition"
+                           onkeydown="if(event.key==='Enter') fetchSpotifyInfo()">
+                    <button onclick="fetchSpotifyInfo()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-sm">
+                        Zoek
+                    </button>
+                </div>
+            </div>
+
+            <!-- Spotify Track Info (hidden until URL entered) -->
+            <div id="spInfo" class="hidden fade-in card p-4">
+                <div class="flex gap-4">
+                    <img id="spThumb" src="" alt="" class="w-20 h-20 object-cover rounded-lg bg-slate-100 flex-shrink-0">
+                    <div class="min-w-0 flex flex-col justify-center">
+                        <p id="spTitle" class="font-medium text-slate-800 line-clamp-2"></p>
+                        <p id="spMeta" class="text-sm text-slate-500 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spotify Format Selection -->
+            <div id="spFormatSection" class="hidden fade-in card p-4">
+                <label class="block text-sm font-medium text-slate-700 mb-3">Download als:</label>
+                <div class="flex gap-3">
+                    <button onclick="selectSpFormat('mp3')" id="spFmtMp3" class="format-chip flex-1 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-green-400 text-sm font-medium flex items-center justify-center gap-2 text-slate-700">
+                        🎵 MP3 <span class="text-slate-400 text-xs">(standaard)</span>
+                    </button>
+                    <button onclick="selectSpFormat('flac')" id="spFmtFlac" class="format-chip flex-1 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-green-400 text-sm font-medium flex items-center justify-center gap-2 text-slate-700">
+                        💿 FLAC <span class="text-slate-400 text-xs">(lossless)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Spotify Download Button -->
+            <div id="spDownloadSection" class="hidden fade-in">
+                <button id="spDownloadBtn" onclick="startSpotifyDownload()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2 text-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Download
+                </button>
+            </div>
+
+            <!-- Spotify Progress -->
+            <div id="spProgress" class="hidden fade-in card p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span id="spProgressLabel" class="text-sm text-slate-600">Bezig met downloaden...</span>
+                    <span id="spProgressPercent" class="text-sm font-mono text-green-600">0%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                    <div id="spProgressBar" class="progress-bar bg-green-500 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                <p id="spProgressDetail" class="text-xs text-slate-400 mt-2"></p>
+            </div>
+
+            <!-- Spotify Result -->
+            <div id="spResult" class="hidden fade-in card p-4 border-green-200 bg-green-50/50">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-xl">✅</div>
+                    <div>
+                        <p class="font-medium text-green-800">Download klaar!</p>
+                        <p id="spResultMeta" class="text-sm text-green-600"></p>
+                    </div>
+                </div>
+                <button id="spResultBtn" onclick="downloadSpotifyFile()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span id="spDownloadLabel">Download bestand</span>
+                </button>
+            </div>
+
+            <!-- Server Status Warning -->
+            <div id="spServerWarning" class="warning-box rounded-lg p-3">
+                <p class="text-sm text-amber-800">⚠️ Spotify-downloads vereisen de lokale server met spotdl.</p>
+                <code class="block mt-2 text-xs text-green-700 bg-green-50 rounded p-2">pip install spotdl && python3 server.py</code>
+                <p class="text-xs text-amber-700 mt-2">Open dan deze pagina op <strong>localhost:3002</strong>. Zie SERVER-HANDLEIDING.md voor meer info.</p>
+            </div>
+
+        </div><!-- end spotifyTab -->
 
         <!-- ==================== ARTICLE TAB ==================== -->
         <div id="articleTab" class="hidden space-y-6">
@@ -327,7 +420,7 @@
                     <input type="text" id="articleUrl" placeholder="https://nos.nl/artikel/..."
                            class="w-full bg-slate-50 border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-100 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition"
                            onkeydown="if(event.key==='Enter') fetchArticle()">
-                    <button onclick="fetchArticle()" id="articleFetchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-sm">
+                    <button onclick="fetchArticle()" id="articleFetchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-sm">
                         Lees
                     </button>
                 </div>
@@ -1700,9 +1793,9 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
     // 11. TAB SWITCHING
     // ============================================================
     function switchTab(tab) {
-        const tabs = { files: 'filesTab', youtube: 'youtubeTab', article: 'articleTab' };
-        const btns = { files: 'tabFiles', youtube: 'tabYoutube', article: 'tabArticle' };
-        const colors = { files: 'bg-indigo-500', youtube: 'bg-red-500', article: 'bg-green-600' };
+        const tabs = { files: 'filesTab', youtube: 'youtubeTab', spotify: 'spotifyTab', article: 'articleTab' };
+        const btns = { files: 'tabFiles', youtube: 'tabYoutube', spotify: 'tabSpotify', article: 'tabArticle' };
+        const colors = { files: 'bg-indigo-500', youtube: 'bg-red-500', spotify: 'bg-green-600', article: 'bg-sky-600' };
         const inactive = 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50';
         const active = 'flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 text-white shadow-sm';
 
@@ -1711,6 +1804,7 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
             document.getElementById(btns[key]).className = key === tab ? `${active} ${colors[key]}` : inactive;
         }
         if (tab === 'youtube') checkYoutubeServer();
+        if (tab === 'spotify') checkSpotifyServer();
     }
 
     // ============================================================
@@ -1867,13 +1961,20 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
             document.getElementById('ytInfo').classList.remove('hidden');
 
             // Show download note if streams unavailable (online mode)
-            if (!isLocalServer && !data.streamsAvailable && data.downloadNote) {
+            if (!isLocalServer && !data.streamsAvailable) {
                 document.getElementById('ytFormatSection').classList.add('hidden');
                 document.getElementById('ytDownloadSection').classList.add('hidden');
-                // Show a warning with the note
                 const noteEl = document.getElementById('ytStreamNote');
                 if (noteEl) {
-                    noteEl.textContent = '⚠️ ' + data.downloadNote;
+                    noteEl.innerHTML = `
+                        <p class="font-medium mb-2">⚠️ YouTube downloads werken alleen lokaal</p>
+                        <p class="text-sm mb-2">YouTube blokkeert downloads vanuit online services. Gebruik de lokale server voor betrouwbare downloads:</p>
+                        <div class="bg-indigo-50 rounded p-2 mt-2">
+                            <code class="text-xs text-indigo-700 block">pip install yt-dlp</code>
+                            <code class="text-xs text-indigo-700 block mt-1">python3 server.py</code>
+                        </div>
+                        <p class="text-xs mt-2 opacity-75">Open dan deze app op <strong>localhost:3002</strong> en download via de lokale server. Zie de handleiding (SERVER-HANDLEIDING.md) voor meer info.</p>
+                    `;
                     noteEl.classList.remove('hidden');
                 }
             } else {
@@ -2054,7 +2155,205 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
     }
 
     // ============================================================
-    // 14. ARTICLE READER (with Readability.js for online mode)
+    // 14. SPOTIFY DOWNLOADER
+    // ============================================================
+    const spState = {
+        url: '',
+        format: null,
+        jobId: null,
+        title: '',
+        type: '',
+        polling: false,
+    };
+
+    async function checkSpotifyServer() {
+        if (!isLocalServer) {
+            document.getElementById('spServerWarning').classList.remove('hidden');
+            return;
+        }
+        try {
+            const resp = await fetch('/api/spotify/info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: 'test' }),
+                signal: AbortSignal.timeout(5000)
+            });
+            document.getElementById('spServerWarning').classList.add('hidden');
+        } catch {
+            document.getElementById('spServerWarning').classList.remove('hidden');
+        }
+    }
+
+    async function fetchSpotifyInfo() {
+        const url = document.getElementById('spUrl').value.trim();
+        if (!url) return;
+
+        if (!url.match(/^https?:\/\/open\.spotify\.com\/.*(track|album|playlist)\//i)) {
+            alert('Voer een geldige Spotify-URL in (track, album of playlist).');
+            return;
+        }
+
+        if (!isLocalServer) {
+            alert('Spotify-downloads werken alleen via de lokale server. Start server.py op je computer.');
+            return;
+        }
+
+        spState.url = url;
+
+        // Reset UI
+        document.getElementById('spInfo').classList.add('hidden');
+        document.getElementById('spFormatSection').classList.add('hidden');
+        document.getElementById('spDownloadSection').classList.add('hidden');
+        document.getElementById('spProgress').classList.add('hidden');
+        document.getElementById('spResult').classList.add('hidden');
+
+        const searchBtn = document.querySelector('#spotifyTab .bg-green-600');
+        const origText = searchBtn.textContent;
+        searchBtn.textContent = '...';
+        searchBtn.disabled = true;
+
+        try {
+            const resp = await fetch('/api/spotify/info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+
+            const data = await resp.json();
+
+            if (data.error) {
+                alert('Fout: ' + data.error);
+                return;
+            }
+
+            spState.title = data.title;
+            spState.type = data.type;
+
+            document.getElementById('spThumb').src = data.thumbnail || '';
+            document.getElementById('spTitle').textContent = data.title;
+
+            const typeLabels = { track: 'Nummer', album: 'Album', playlist: 'Playlist' };
+            document.getElementById('spMeta').textContent = typeLabels[data.type] || 'Spotify';
+
+            document.getElementById('spInfo').classList.remove('hidden');
+            document.getElementById('spFormatSection').classList.remove('hidden');
+            document.getElementById('spServerWarning').classList.add('hidden');
+
+        } catch (e) {
+            alert('Kon geen verbinding maken met de server. Is server.py actief?');
+        } finally {
+            searchBtn.textContent = origText;
+            searchBtn.disabled = false;
+        }
+    }
+
+    function selectSpFormat(format) {
+        spState.format = format;
+        const mp3Btn = document.getElementById('spFmtMp3');
+        const flacBtn = document.getElementById('spFmtFlac');
+
+        mp3Btn.classList.remove('selected', 'border-green-400');
+        flacBtn.classList.remove('selected', 'border-green-400');
+        mp3Btn.classList.add('border-slate-200');
+        flacBtn.classList.add('border-slate-200');
+
+        if (format === 'mp3') {
+            mp3Btn.classList.add('selected', 'border-green-400');
+            mp3Btn.classList.remove('border-slate-200');
+        } else {
+            flacBtn.classList.add('selected', 'border-green-400');
+            flacBtn.classList.remove('border-slate-200');
+        }
+
+        document.getElementById('spDownloadSection').classList.remove('hidden');
+    }
+
+    async function startSpotifyDownload() {
+        if (!spState.url || !spState.format) return;
+
+        const btn = document.getElementById('spDownloadBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Bezig...';
+
+        document.getElementById('spProgress').classList.remove('hidden');
+        document.getElementById('spResult').classList.add('hidden');
+        setSpProgress(0, 'Download starten...', 'spotdl wordt opgestart...');
+
+        try {
+            const resp = await fetch('/api/spotify/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: spState.url, format: spState.format })
+            });
+
+            const data = await resp.json();
+
+            if (data.error) {
+                setSpProgress(0, 'Download mislukt', data.error);
+                return;
+            }
+
+            spState.jobId = data.job_id;
+            pollSpotifyJob();
+
+        } catch (e) {
+            setSpProgress(0, 'Download mislukt', 'Kon geen verbinding maken met de server.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Download';
+        }
+    }
+
+    function setSpProgress(percent, label, detail) {
+        document.getElementById('spProgressBar').style.width = Math.max(percent, 2) + '%';
+        document.getElementById('spProgressPercent').textContent = Math.round(percent) + '%';
+        if (label) document.getElementById('spProgressLabel').textContent = label;
+        if (detail !== undefined) document.getElementById('spProgressDetail').textContent = detail;
+    }
+
+    async function pollSpotifyJob() {
+        if (spState.polling) return;
+        spState.polling = true;
+
+        const poll = async () => {
+            try {
+                const resp = await fetch(`/api/spotify/status/${spState.jobId}`);
+                const data = await resp.json();
+
+                if (data.status === 'downloading') {
+                    setSpProgress(data.progress, 'Bezig met downloaden...', data.title ? `"${data.title}"` : 'spotdl is bezig...');
+                    setTimeout(poll, 1500);
+                } else if (data.status === 'done') {
+                    setSpProgress(100, 'Download voltooid!', '');
+                    document.getElementById('spResultMeta').textContent = data.filename;
+                    document.getElementById('spDownloadLabel').textContent = `Download ${data.filename}`;
+                    document.getElementById('spResult').classList.remove('hidden');
+                    spState.polling = false;
+                } else if (data.status === 'error') {
+                    setSpProgress(0, 'Download mislukt', data.error || 'Onbekende fout');
+                    spState.polling = false;
+                }
+            } catch (e) {
+                setSpProgress(0, 'Verbinding verloren', 'Server reageert niet meer.');
+                spState.polling = false;
+            }
+        };
+
+        poll();
+    }
+
+    function downloadSpotifyFile() {
+        if (!spState.jobId) return;
+        const a = document.createElement('a');
+        a.href = `/api/spotify/file/${spState.jobId}`;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // ============================================================
+    // 15. ARTICLE READER (with Readability.js for online mode)
     // ============================================================
     let lastArticleText = '';
     let readabilityLoaded = false;
@@ -2178,4 +2477,3 @@ blockquote{border-left:4px solid #ddd;margin-left:0;padding-left:1rem;color:#666
     </script>
 </body>
 </html>
-

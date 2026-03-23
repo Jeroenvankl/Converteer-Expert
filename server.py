@@ -48,6 +48,11 @@ def check_ffmpeg():
     return shutil.which('ffmpeg', path=ENV_WITH_NODE['PATH']) is not None
 
 
+def check_spotdl():
+    """Check if spotdl is installed."""
+    return shutil.which('spotdl') is not None
+
+
 class ConvertHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=SERVE_DIR, **kwargs)
@@ -65,15 +70,19 @@ class ConvertHandler(http.server.SimpleHTTPRequestHandler):
             self._handle_youtube_info()
         elif self.path == '/api/youtube/download':
             self._handle_youtube_download()
+        elif self.path == '/api/spotify/info':
+            self._handle_spotify_info()
+        elif self.path == '/api/spotify/download':
+            self._handle_spotify_download()
         elif self.path == '/api/article':
             self._handle_article()
         else:
             self.send_error(404, 'Not found')
 
     def do_GET(self):
-        if self.path.startswith('/api/youtube/status/'):
+        if self.path.startswith('/api/youtube/status/') or self.path.startswith('/api/spotify/status/'):
             self._handle_job_status()
-        elif self.path.startswith('/api/youtube/file/'):
+        elif self.path.startswith('/api/youtube/file/') or self.path.startswith('/api/spotify/file/'):
             self._handle_job_file()
         else:
             super().do_GET()
@@ -306,12 +315,17 @@ class ConvertHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # Determine content type
-        if filename.endswith('.mp3'):
-            content_type = 'audio/mpeg'
-        elif filename.endswith('.mp4'):
-            content_type = 'video/mp4'
-        else:
-            content_type = 'application/octet-stream'
+        content_types = {
+            '.mp3': 'audio/mpeg',
+            '.mp4': 'video/mp4',
+            '.flac': 'audio/flac',
+            '.ogg': 'audio/ogg',
+            '.m4a': 'audio/mp4',
+            '.wav': 'audio/wav',
+            '.zip': 'application/zip',
+        }
+        ext = os.path.splitext(filename)[1].lower()
+        content_type = content_types.get(ext, 'application/octet-stream')
 
         file_size = os.path.getsize(filepath)
 
@@ -327,11 +341,240 @@ class ConvertHandler(http.server.SimpleHTTPRequestHandler):
 
         # Cleanup after download
         try:
-            os.remove(filepath)
-            os.rmdir(job['temp_dir'])
+            shutil.rmtree(job['temp_dir'], ignore_errors=True)
             del jobs[job_id]
         except Exception:
             pass
+
+    # ====================== SPOTIFY HANDLERS ======================
+
+    def _handle_spotify_info(self):
+        """Get Spotify track/album/playlist info via oEmbed API."""
+        try:
+            body = self._read_json_body()
+            url = body.get('url', '')
+
+            if not url:
+                self._send_json({'error': 'Geen URL opgegeven'}, 400)
+                return
+
+            # Validate Spotify URL
+            if 'open.spotify.com' not in url and not url.startswith('spotify:'):
+                self._send_json({'error': 'Geen geldige Spotify-URL'}, 400)
+                return
+
+            # Check spotdl
+            if not check_spotdl():
+                self._send_json({'error': 'spotdl is niet geïnstalleerd. Voer uit: pip install spotdl'}, 500)
+                return
+
+            # Use Spotify oEmbed API (no auth needed)
+            import requests as req_lib
+            oembed_url = f'https://open.spotify.com/oembed?url={urllib.parse.quote(url, safe="")}'
+            resp = req_lib.get(oembed_url, headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+            }, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+
+            # Determine type from URL
+            spotify_type = 'track'
+            if '/album/' in url:
+                spotify_type = 'album'
+            elif '/playlist/' in url:
+                spotify_type = 'playlist'
+
+            self._send_json({
+                'title': data.get('title', 'Onbekend'),
+                'thumbnail': data.get('thumbnail_url', ''),
+                'type': spotify_type,
+            })
+
+        except Exception as e:
+            error_msg = str(e)
+            if '404' in error_msg:
+                self._send_json({'error': 'Spotify-link niet gevonden. Controleer de URL.'}, 400)
+            else:
+                self._send_json({'error': error_msg}, 500)
+
+    def _handle_spotify_download(self):
+        """Start a Spotify download job using spotdl."""
+        if not check_spotdl():
+            self._send_json({'error': 'spotdl is niet geïnstalleerd. Voer uit: pip install spotdl'}, 500)
+            return
+
+        try:
+            body = self._read_json_body()
+            url = body.get('url', '')
+            fmt = body.get('format', 'mp3')
+
+            if not url:
+                self._send_json({'error': 'Geen URL opgegeven'}, 400)
+                return
+
+            if fmt not in ('mp3', 'flac', 'ogg', 'm4a', 'wav'):
+                self._send_json({'error': 'Ongeldig formaat. Kies mp3 of flac.'}, 400)
+                return
+
+            # Create job
+            job_id = f"spot_{int(time.time() * 1000)}"
+            temp_dir = tempfile.mkdtemp(prefix='converteer_spot_')
+
+            job = {
+                'id': job_id,
+                'status': 'downloading',
+                'progress': 0,
+                'title': '',
+                'filename': '',
+                'filepath': '',
+                'temp_dir': temp_dir,
+                'error': None,
+            }
+            jobs[job_id] = job
+
+            # Start download in background thread
+            thread = threading.Thread(
+                target=self._run_spotify_download,
+                args=(job_id, url, fmt, temp_dir),
+                daemon=True
+            )
+            thread.start()
+
+            self._send_json({'job_id': job_id})
+
+        except Exception as e:
+            self._send_json({'error': str(e)}, 500)
+
+    def _run_spotify_download(self, job_id, url, fmt, temp_dir):
+        """Run spotdl download in background thread."""
+        job = jobs[job_id]
+
+        try:
+            output_template = os.path.join(temp_dir, '{artists} - {title}.{output-ext}')
+
+            # Build spotdl command
+            # --simple-tui for pipe-friendly output (no rich terminal)
+            cmd = [
+                'spotdl', 'download', url,
+                '--output', output_template,
+                '--format', fmt,
+                '--simple-tui',
+            ]
+
+            # Check for custom Spotify credentials in environment
+            spotify_client_id = os.environ.get('SPOTIFY_CLIENT_ID', '')
+            spotify_client_secret = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
+            if spotify_client_id and spotify_client_secret:
+                cmd.extend(['--client-id', spotify_client_id,
+                           '--client-secret', spotify_client_secret])
+
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                env=ENV_WITH_NODE,
+            )
+
+            total_tracks = 1
+            downloaded = 0
+            output_lines = []
+
+            for line in process.stdout:
+                line = line.strip()
+                if not line:
+                    continue
+                output_lines.append(line)
+
+                # Check for rate limit error
+                if 'rate' in line.lower() and 'limit' in line.lower():
+                    process.kill()
+                    job['status'] = 'error'
+                    job['error'] = ('Spotify API rate limit bereikt. Probeer het later opnieuw, '
+                                    'of stel eigen Spotify API credentials in '
+                                    '(zie SERVER-HANDLEIDING.md).')
+                    return
+
+                # Parse total track count: "Found 15 song(s)"
+                match = re.search(r'Found (\d+) song', line)
+                if match:
+                    total_tracks = int(match.group(1))
+                    if total_tracks > 1:
+                        job['title'] = f'0/{total_tracks} nummers'
+
+                # Track completed downloads
+                if 'Downloaded' in line:
+                    downloaded += 1
+                    job['progress'] = min(int((downloaded / total_tracks) * 95), 95)
+                    # Extract title from quotes
+                    title_match = re.search(r'"(.+?)"', line)
+                    if title_match:
+                        if total_tracks > 1:
+                            job['title'] = f'{downloaded}/{total_tracks}: {title_match.group(1)}'
+                        else:
+                            job['title'] = title_match.group(1)
+
+                # Skipped (already downloaded)
+                if 'Skipping' in line or 'Skipped' in line:
+                    downloaded += 1
+                    job['progress'] = min(int((downloaded / total_tracks) * 95), 95)
+
+                # Processing status
+                if 'Processing' in line or 'Searching' in line:
+                    job['progress'] = max(job['progress'], 5)
+
+            process.wait()
+
+            if process.returncode != 0 and downloaded == 0:
+                # Check output for common errors
+                full_output = '\n'.join(output_lines[-5:])  # Last 5 lines
+                if 'rate' in full_output.lower() and 'limit' in full_output.lower():
+                    job['status'] = 'error'
+                    job['error'] = ('Spotify API rate limit bereikt. Probeer het later opnieuw, '
+                                    'of stel eigen Spotify API credentials in.')
+                else:
+                    job['status'] = 'error'
+                    job['error'] = f'spotdl download mislukt. {full_output[:200]}'
+                return
+
+            # Find output files (exclude hidden files and spotdl cache)
+            files = [f for f in os.listdir(temp_dir)
+                     if not f.startswith('.') and not f.endswith('.spotdl')]
+
+            if not files:
+                job['status'] = 'error'
+                job['error'] = 'Geen bestanden gevonden na download. Is spotdl correct geconfigureerd?'
+                return
+
+            if len(files) == 1:
+                # Single track
+                filename = files[0]
+                job['filename'] = filename
+                job['filepath'] = os.path.join(temp_dir, filename)
+                if not job['title'] or '/' in job.get('title', ''):
+                    job['title'] = Path(filename).stem
+            else:
+                # Multiple tracks — create ZIP
+                import zipfile
+                zip_name = f'spotify_{len(files)}_nummers.zip'
+                zip_path = os.path.join(temp_dir, zip_name)
+                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+                    for f in sorted(files):
+                        fpath = os.path.join(temp_dir, f)
+                        zf.write(fpath, f)
+
+                job['filename'] = zip_name
+                job['filepath'] = zip_path
+                job['title'] = f'{len(files)} nummers gedownload'
+
+            job['status'] = 'done'
+            job['progress'] = 100
+
+        except Exception as e:
+            job['status'] = 'error'
+            job['error'] = str(e)
+
+    # ====================== ARTICLE HANDLER ======================
 
     def _handle_article(self):
         """Fetch a URL and extract the article content (like Reader Mode)."""
@@ -467,12 +710,19 @@ def main():
     # Check dependencies
     has_ytdlp = check_ytdlp()
     has_ffmpeg = check_ffmpeg()
+    has_spotdl = check_spotdl()
     has_node = shutil.which('node', path=ENV_WITH_NODE['PATH']) is not None
 
     if has_ytdlp:
         print("   ✅ yt-dlp gevonden")
     else:
         print("   ❌ yt-dlp NIET gevonden — installeer met: pip3 install yt-dlp")
+
+    if has_spotdl:
+        print("   ✅ spotdl gevonden")
+    else:
+        print("   ⚠️  spotdl NIET gevonden — Spotify-downloads uitgeschakeld")
+        print("      Installeer met: pip3 install spotdl")
 
     if has_ffmpeg:
         print("   ✅ ffmpeg gevonden")
